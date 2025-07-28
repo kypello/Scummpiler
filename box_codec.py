@@ -1,22 +1,5 @@
-import sys, os, json
-
-def le_decode(bytes):
-    return bytes[1] * 0x100 + bytes[0]
-
-def le_encode(value):
-    return [value & 0xff, (value & 0xff00) >> 8]
-
-def le_encode_32(value):
-    return [value & 0xff, (value & 0xff00) >> 8, (value & 0xff0000) >> 16, (value & 0xff000000) >> 24]
-
-def be_encode_32(value):
-    return [(value & 0xff000000) >> 24, (value & 0xff0000) >> 16, (value & 0xff00) >> 8, value & 0xff]
-
-def signed(value):
-    return ((value & 0x8000) >> 15) * -0x8000 + (value & 0x7fff)
-
-def signed_encode(value):
-    return ((value & 0x80000000) >> 16) + (value & 0x7fff)
+import sys, os, json, timestamp_manager
+from binary_functions import *
 
 def decode_box_data(box_data, version):
     p = 0
@@ -41,7 +24,7 @@ def decode_box_data(box_data, version):
         vertices = []
 
         for j in range(4):
-            vertices.append( ( signed( le_decode(box_data[p:p+2]) ), signed( le_decode(box_data[p+2:p+4]) ) ) )
+            vertices.append( ( signed_decode( le_decode(box_data[p:p+2]) ), signed_decode( le_decode(box_data[p+2:p+4]) ) ) )
             p += 4
         
         box["vertices"] = vertices
@@ -78,14 +61,13 @@ def decode_box_data(box_data, version):
     
     return boxes
     
-    
-
-def decode_matrix_data(matrix_data, box_count):
+def decode_matrix_data(matrix_data):
     p = 0
+    i = 0
 
     matrices = []
 
-    for i in range(box_count):
+    while p < len(matrix_data) - 1:
         matrix = {}
         entries = []
         while matrix_data[p] != 0xFF:
@@ -101,14 +83,11 @@ def decode_matrix_data(matrix_data, box_count):
         matrix["table"] = entries
         matrices.append(matrix)
         p += 1
+        i += 1
     
     return matrices
 
-def read_data_v4(room_path):
-    bx_file = open(os.path.join(room_path, "BX.dmp"), 'rb')
-    box_matrix_data = bx_file.read()
-    bx_file.close()
-
+def separate_data_v4(box_matrix_data):
     box_count = box_matrix_data[6]
     box_data_end = 6 + 1 + 20 * box_count
 
@@ -117,62 +96,45 @@ def read_data_v4(room_path):
 
     return (box_data, matrix_data)
 
-def read_data_v5(room_path):
-    boxd_file = open(os.path.join(room_path, "BOXD.dmp"), 'rb')
-    box_data = boxd_file.read()[8:]
-    boxd_file.close()
+def decode(encoded_file_path, version, timestamp_manager):
+    encoded_file = open(encoded_file_path, 'rb')
+    encoded_data = encoded_file.read()
+    encoded_file.close()
 
-    boxm_file = open(os.path.join(room_path, "BOXM.dmp"), 'rb')
-    matrix_data = boxm_file.read()[8:]
-    boxm_file.close()
+    decoded_data = {}
+    file_type = ""
 
-    return (box_data, matrix_data)
+    if version == '4':
+        file_type = "combined"
 
-def write_json_v4(room_path, boxes, matrices):
-    output_info = {}
-    output_info["boxes"] = boxes
-    output_info["matrices"] = matrices
+        (encoded_box_data, encoded_matrix_data) = separate_data_v4(encoded_data)
+        decoded_data["boxes"] = decode_box_data(encoded_box_data, version)
+        decoded_data["matrices"] = decode_matrix_data(encoded_matrix_data)
 
-    output_path = os.path.join(room_path, "BX.json")
+    elif version == '5':
+        if encoded_file_path.endswith("BOXD.dmp"):
+            file_type = "box"
+            decoded_data = decode_box_data(encoded_data[8:], version)
 
-    output_file = open(output_path, 'w')
-    output_file.write(json.dumps(output_info, indent=4))
-    output_file.close()
+        elif encoded_file_path.endswith("BOXM.dmp"):
+            file_type = "matrix"
+            decoded_data = decode_matrix_data(encoded_data[8:])
 
-def write_json_v5(room_path, boxes, matrices):
-    boxd_file = open(os.path.join(room_path, "BOXD.json"), 'w')
-    boxd_file.write(json.dumps(boxes, indent=4))
-    boxd_file.close()
 
-    boxm_file = open(os.path.join(room_path, "BOXM.json"), 'w')
-    boxm_file.write(json.dumps(matrices, indent=4))
-    boxm_file.close()
+    decoded_file_path = encoded_file_path.replace(".dmp", ".json")
 
-def decode(room_path, version):
-    box_data = []
-    matrix_data = []
+    decoded_file = open(decoded_file_path, 'w')
+    decoded_file.write(json.dumps(decoded_data, indent=4))
+    decoded_file.close()
 
-    box_count = 0
-
-    if version == "4":
-        (box_data, matrix_data) = read_data_v4(room_path)
-    elif version == "5":
-        (box_data, matrix_data) = read_data_v5(room_path)
+    timestamp_manager.add_timestamp(decoded_file_path)
     
-    boxes = decode_box_data(box_data, version)
-    box_count = len(boxes)
-
-    matrices = decode_matrix_data(matrix_data, box_count)
-
-    if version == "4":
-        write_json_v4(room_path, boxes, matrices)
-    elif version == "5":
-        write_json_v5(room_path, boxes, matrices)
-    
-    print("Decoded box and matrix data")
-
-
-
+    if file_type == "combined":
+        print(f"Decoded box and matrix data {encoded_file_path} to {decoded_file_path}")
+    elif file_type == "box":
+        print(f"Decoded box data {encoded_file_path} to {decoded_file_path}")
+    elif file_type == "matrix":
+        print(f"Decoded matrix data {encoded_file_path} to {decoded_file_path}")
 
 
 def encode_box_data(boxes, version):
@@ -241,72 +203,51 @@ def encode_matrix_data(matrices):
     
     return matrix_data
 
-def read_json_v4(room_path):
-    bx_file = open(os.path.join(room_path, "BX.json"), 'r')
-    bx = json.loads(bx_file.read())
-    bx_file.close()
+def encode(decoded_file_path, version):
+    decoded_file = open(decoded_file_path, 'r')
+    decoded_data = json.loads(decoded_file.read())
+    decoded_file.close()
 
-    return (bx["boxes"], bx["matrices"])
+    encoded_data = []
+    file_type = ""
 
-def read_json_v5(room_path):
-    boxd_file = open(os.path.join(room_path, "BOXD.json"), 'r')
-    boxes = json.loads(boxd_file.read())
-    boxd_file.close()
+    if version == '4':
+        encoded_box_data = encode_box_data(decoded_data["boxes"], version)
+        encoded_matrix_data = encode_matrix_data(decoded_data["matrices"])
 
-    boxm_file = open(os.path.join(room_path, "BOXM.json"), 'r')
-    matrices = json.loads(boxm_file.read())
-    boxm_file.close()
+        header = [0x42, 0x58]
+        encoded_data_length = 6 + len(encoded_box_data) + len(encoded_matrix_data)
 
-    return (boxes, matrices)
+        encoded_data = le_encode_32(encoded_data_length) + header + encoded_box_data + encoded_matrix_data
+        file_type = "combined"
 
-def write_data_v4(room_path, box_data, matrix_data):
-    bx_header = [0x42, 0x58]
-    bx_data_length = 6 + len(box_data) + len(matrix_data)
+    elif version == '5':
+        header = []
 
-    bx_data = le_encode_32(bx_data_length) + bx_header + box_data + matrix_data
+        if decoded_file_path.endswith("BOXD.json"):
+            file_type = "box"
+            encoded_data = encode_box_data(decoded_data, version)
+            header = [0x42, 0x4f, 0x58, 0x44]
 
-    bx_file = open(os.path.join(room_path, "BX.dmp"), 'wb')
-    bx_file.write(bytes(bx_data))
-    bx_file.close()
+        elif decoded_file_path.endswith("BOXM.json"):
+            file_type = "matrix"
+            encoded_data = encode_matrix_data(decoded_data)
+            header = [0x42, 0x4f, 0x58, 0x4d]
 
-def write_data_v5(room_path, box_data, matrix_data):
-    boxd_header = [0x42, 0x4f, 0x58, 0x44]
-    box_data_length = 8 + len(box_data)
-
-    box_data = boxd_header + be_encode_32(box_data_length) + box_data
-
-    boxd_file = open(os.path.join(room_path, "BOXD.dmp"), 'wb')
-    boxd_file.write(bytes(box_data))
-    boxd_file.close()
-
-    boxm_header = [0x42, 0x4f, 0x58, 0x4d]
-    matrix_data_length = 8 + len(matrix_data)
+        encoded_data_length = 8 + len(encoded_data)
+        encoded_data = header + be_encode_32(encoded_data_length) + encoded_data
     
-    matrix_data = boxm_header + be_encode_32(matrix_data_length) + matrix_data
+    encoded_file_path = decoded_file_path.replace(".json", ".dmp")
+    encoded_file = open(encoded_file_path, 'wb')
+    encoded_file.write(bytes(encoded_data))
+    encoded_file.close()
 
-    boxm_file = open(os.path.join(room_path, "BOXM.dmp"), 'wb')
-    boxm_file.write(bytes(matrix_data))
-    boxm_file.close()
-
-def encode(room_path, version):
-    boxes = []
-    matrices = []
-
-    if version == "4":
-        (boxes, matrices) = read_json_v4(room_path)
-    elif version == "5":
-        (boxes, matrices) = read_json_v5(room_path)
-    
-    box_data = encode_box_data(boxes, version)
-    matrix_data = encode_matrix_data(matrices)
-
-    if version == "4":
-        write_data_v4(room_path, box_data, matrix_data)
-    elif version == "5":
-        write_data_v5(room_path, box_data, matrix_data)
-    
-    print("Encoded box and matrix data")
-
+    if file_type == "combined":
+        print(f"Encoded box and matrix data {decoded_file_path} to {encoded_file_path}")
+    elif file_type == "box":
+        print(f"Encoded box data {decoded_file_path} to {encoded_file_path}")
+    elif file_type == "matrix":
+        print(f"Encoded matrix data {decoded_file_path} to {encoded_file_path}")
 
 if __name__ == "__main__":
     if sys.argv[1] == 'd':
