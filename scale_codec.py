@@ -9,10 +9,10 @@ def decode_scale_data(data):
     while p < len(data):
         entry = {}
 
-        entry["y1"] = signed_decode(le_decode(data[p+2:p+4]))
-        entry["scale1"] = le_decode(data[p:p+2])
-        entry["y2"] = signed_decode(le_decode(data[p+6:p+8]))
-        entry["scale2"] = le_decode(data[p+4:p+6])
+        entry["y1"] = signed_decode(le_decode(data[p+2:p+4], 2))
+        entry["scale1"] = le_decode(data[p:p+2], 2)
+        entry["y2"] = signed_decode(le_decode(data[p+6:p+8], 2))
+        entry["scale2"] = le_decode(data[p+4:p+6], 2)
 
         table.append(entry)
         p += 8
@@ -23,14 +23,16 @@ def encode_scale_data(table):
     data = []
 
     for entry in table:
-        data += le_encode(entry["scale1"])
-        data += le_encode(signed_encode(entry["y1"]))
-        data += le_encode(entry["scale2"])
-        data += le_encode(signed_encode(entry["y2"]))
+        data += le_encode(entry["scale1"], 2)
+        data += le_encode(signed_encode(entry["y1"]), 2)
+        data += le_encode(entry["scale2"], 2)
+        data += le_encode(signed_encode(entry["y2"]), 2)
     
     return data
 
 def decode(scale_data_file_path, version, timestamp_manager):
+    print(f"Decoding {scale_data_file_path}")
+
     scale_data_file = open(scale_data_file_path, 'rb')
     scale_data = scale_data_file.read()
     scale_data_file.close()
@@ -47,11 +49,12 @@ def decode(scale_data_file_path, version, timestamp_manager):
     scale_table_file.write(json.dumps(scale_table, indent=4))
     scale_table_file.close()
 
-    timestamp_manager.add_timestamp(scale_table_file_path)
+    if timestamp_manager != []:
+        timestamp_manager.add_timestamp(scale_table_file_path)
 
-    print(f"Decoded {scale_data_file_path} to {scale_table_file_path}")
+def encode(scale_table_file_path, version, timestamp_manager):
+    print(f"Encoding {scale_table_file_path}")
 
-def encode(scale_table_file_path, version):
     scale_table_file = open(scale_table_file_path, 'r')
     scale_table = json.loads(scale_table_file.read())
     scale_table_file.close()
@@ -61,9 +64,9 @@ def encode(scale_table_file_path, version):
     header = []
 
     if version == '4':
-        header = le_encode_32(len(scale_data) + 6) + [0x53, 0x41]
+        header = le_encode(len(scale_data) + 6, 4) + [0x53, 0x41]
     elif version == '5':
-        header = [0x53, 0x43, 0x41, 0x4c] + be_encode_32(len(scale_data) + 8)
+        header = [0x53, 0x43, 0x41, 0x4c] + be_encode(len(scale_data) + 8, 4)
     
     scale_data = header + scale_data
 
@@ -72,13 +75,15 @@ def encode(scale_table_file_path, version):
     scale_data_file.write(bytes(scale_data))
     scale_data_file.close()
 
-    print(f"Encoded {scale_table_file_path} to {scale_data_file_path}")
+    if timestamp_manager != []:
+        timestamp_manager.add_timestamp(scale_table_file_path)
 
 if __name__ == "__main__":
-    if sys.argv[1] == 'd':
-        decode(sys.argv[2], sys.argv[3])
-    if sys.argv[1] == 'e':
-        encode(sys.argv[2], sys.argv[3])
+    if sys.argv[1] == 'decode':
+        decode(sys.argv[2], sys.argv[3], [])
+
+    elif sys.argv[1] == 'encode':
+        encode(sys.argv[2], sys.argv[3], [])
 
 
 

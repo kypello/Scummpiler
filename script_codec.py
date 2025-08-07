@@ -61,7 +61,16 @@ def identify_script_type(bytecode_file_path):
         return "unknown"
 
 def fix_descumm_glitches(script):
-	return script.replace("unknown8(8224)", "newline()").replace("VAR_TIMER_TOTAL", "VAR_TMR_4").replace("setXY(,", ",setXY(").replace(")keepText()", ") + keepText()").replace(")getName(", ") + getName(").replace(")getString(", ") + getString(").replace(")getVerb(", ") + getVerb(")
+    #incorrect names
+    script = script.replace("unknown8(8224)", "newline()").replace("VAR_TIMER_TOTAL", "VAR_TMR_4")
+
+    #misplaced comma in drawObject() parameters
+    script = script.replace("setXY(,", ", setXY(").replace("setImage(,", ", setImage(")
+
+    #missing plus in string functions
+    script = script.replace(")newline(", ") + newline(").replace(")wait(", ") + wait(").replace(")keepText(", ") + keepText(").replace(")getInt(", ") + getInt(").replace(")getName(", ") + getName(").replace(")getVerb(", ") + getVerb(").replace(")getString(", ") + getString(")
+
+    return script
 
 def fix_v4_object_metadata(script, file_path):
     if script == "Events\nEND\n":
@@ -99,6 +108,8 @@ def label_object_functions(script, version):
     return script
 
 def decode(bytecode_file_path, version, timestamp_manager):
+    print(f"Decoding {bytecode_file_path}")
+
     script_type = identify_script_type(bytecode_file_path)
 
     script = os.popen(f'wine {descumm_path} -{version} "{bytecode_file_path}"').read()
@@ -123,9 +134,8 @@ def decode(bytecode_file_path, version, timestamp_manager):
     script_file.write(script)
     script_file.close()
 
-    timestamp_manager.add_timestamp(script_file_path)
-
-    print(f"Decoded {script_type} script {bytecode_file_path} to {script_file_path}")
+    if timestamp_manager != []:
+        timestamp_manager.add_timestamp(script_file_path)
         
 def prepare_special_characters(script):
     script = script.replace("\\xFA", " ")#.replace("...\"", "^^\"").replace("...", "^")
@@ -173,7 +183,9 @@ def fix_bytecode_header(bytecode, script_type, version):
             bytecode = [0x45, 0x58, 0x43, 0x44] + bytecode[4:]
     return bytecode
 
-def encode(script_file_path, version):
+def encode(script_file_path, version, timestamp_manager):
+    print(f"Encoding {script_file_path}")
+
     script_type = identify_script_type(script_file_path)
 
     script_file = open(script_file_path, 'r')
@@ -210,11 +222,12 @@ def encode(script_file_path, version):
     bytecode_file.write(bytecode)
     bytecode_file.close()
 
-    print(f"Encoded {script_type} script {script_file_path} to {bytecode_file_path}")
+    if timestamp_manager != []:
+        timestamp_manager.add_timestamp(script_file_path)
 
 if __name__ == "__main__":
-    if sys.argv[1] == 'd':
-	    decode(sys.argv[2], sys.argv[3])
-    elif sys.argv[1] == 'e':
-        encode(sys.argv[2], sys.argv[3])
+    if sys.argv[1] == 'decode':
+	    decode(sys.argv[2], sys.argv[3], [])
+    elif sys.argv[1] == 'encode':
+        encode(sys.argv[2], sys.argv[3], [])
 

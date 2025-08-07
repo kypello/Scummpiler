@@ -11,7 +11,7 @@ def decode_box_data(box_data, version):
         p += 1
     
     elif version == "5":
-        box_count = le_decode(box_data[p:p+2])
+        box_count = le_decode(box_data[p:p+2], 2)
         p += 2
 
     boxes = []
@@ -24,7 +24,7 @@ def decode_box_data(box_data, version):
         vertices = []
 
         for j in range(4):
-            vertices.append( ( signed_decode( le_decode(box_data[p:p+2]) ), signed_decode( le_decode(box_data[p+2:p+4]) ) ) )
+            vertices.append( ( signed_decode( le_decode(box_data[p:p+2], 2) ), signed_decode( le_decode(box_data[p+2:p+4], 2) ) ) )
             p += 4
         
         box["vertices"] = vertices
@@ -97,6 +97,8 @@ def separate_data_v4(box_matrix_data):
     return (box_data, matrix_data)
 
 def decode(encoded_file_path, version, timestamp_manager):
+    print(f"Decoding {encoded_file_path}")
+
     encoded_file = open(encoded_file_path, 'rb')
     encoded_data = encoded_file.read()
     encoded_file.close()
@@ -127,14 +129,8 @@ def decode(encoded_file_path, version, timestamp_manager):
     decoded_file.write(json.dumps(decoded_data, indent=4))
     decoded_file.close()
 
-    timestamp_manager.add_timestamp(decoded_file_path)
-    
-    if file_type == "combined":
-        print(f"Decoded box and matrix data {encoded_file_path} to {decoded_file_path}")
-    elif file_type == "box":
-        print(f"Decoded box data {encoded_file_path} to {decoded_file_path}")
-    elif file_type == "matrix":
-        print(f"Decoded matrix data {encoded_file_path} to {decoded_file_path}")
+    if timestamp_manager != []:
+        timestamp_manager.add_timestamp(decoded_file_path)
 
 
 def encode_box_data(boxes, version):
@@ -151,8 +147,8 @@ def encode_box_data(boxes, version):
         vertices = box["vertices"]
 
         for vertex in vertices:
-            box_data += le_encode(signed_encode(vertex[0]))
-            box_data += le_encode(signed_encode(vertex[1]))
+            box_data += le_encode(signed_encode(vertex[0]), 2)
+            box_data += le_encode(signed_encode(vertex[1]), 2)
 
         box_data.append(box["zplane_enabled"])
 
@@ -184,7 +180,7 @@ def encode_box_data(boxes, version):
         elif box["scale"]["type"] == "dynamic":
             scale = box["scale"]["table_index"] | 0x8000
 
-        box_data += le_encode(scale)
+        box_data += le_encode(scale, 2)
     
     return box_data
 
@@ -203,7 +199,9 @@ def encode_matrix_data(matrices):
     
     return matrix_data
 
-def encode(decoded_file_path, version):
+def encode(decoded_file_path, version, timestamp_manager):
+    print(f"Encoding {decoded_file_path}")
+
     decoded_file = open(decoded_file_path, 'r')
     decoded_data = json.loads(decoded_file.read())
     decoded_file.close()
@@ -218,7 +216,7 @@ def encode(decoded_file_path, version):
         header = [0x42, 0x58]
         encoded_data_length = 6 + len(encoded_box_data) + len(encoded_matrix_data)
 
-        encoded_data = le_encode_32(encoded_data_length) + header + encoded_box_data + encoded_matrix_data
+        encoded_data = le_encode(encoded_data_length, 4) + header + encoded_box_data + encoded_matrix_data
         file_type = "combined"
 
     elif version == '5':
@@ -235,25 +233,22 @@ def encode(decoded_file_path, version):
             header = [0x42, 0x4f, 0x58, 0x4d]
 
         encoded_data_length = 8 + len(encoded_data)
-        encoded_data = header + be_encode_32(encoded_data_length) + encoded_data
+        encoded_data = header + be_encode(encoded_data_length, 4) + encoded_data
     
     encoded_file_path = decoded_file_path.replace(".json", ".dmp")
     encoded_file = open(encoded_file_path, 'wb')
     encoded_file.write(bytes(encoded_data))
     encoded_file.close()
 
-    if file_type == "combined":
-        print(f"Encoded box and matrix data {decoded_file_path} to {encoded_file_path}")
-    elif file_type == "box":
-        print(f"Encoded box data {decoded_file_path} to {encoded_file_path}")
-    elif file_type == "matrix":
-        print(f"Encoded matrix data {decoded_file_path} to {encoded_file_path}")
+    if timestamp_manager != []:
+        timestamp_manager.add_timestamp(decoded_file_path)
 
 if __name__ == "__main__":
-    if sys.argv[1] == 'd':
-        decode(sys.argv[2], sys.argv[3])
-    if sys.argv[1] == 'e':
-        encode(sys.argv[2], sys.argv[3])
+    if sys.argv[1] == 'decode':
+        decode(sys.argv[2], sys.argv[3], [])
+
+    elif sys.argv[1] == 'encode':
+        encode(sys.argv[2], sys.argv[3], [])
 
 
 

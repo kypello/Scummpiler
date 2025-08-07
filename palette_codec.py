@@ -1,7 +1,20 @@
 import os, sys, timestamp_manager
 from PIL import Image
 
-def decode(encoded_file_path, version, timestamp_manager):
+def save_to_png(palette, png_path):
+    palette_image = Image.new(mode="RGB", size=(16,16))
+
+    for y in range(16):
+        for x in range(16):
+            color = palette[y * 16 + x]
+            palette_image.putpixel((x, y), color)
+    
+    palette_image.save(png_path)
+
+def decode(encoded_file_path, version, timestamp_manager, save_to_file=True):
+    if save_to_file:
+        print(f"Decoding {encoded_file_path}")
+
     encoded_file = open(encoded_file_path, 'rb')
     encoded_data = encoded_file.read()
     encoded_file.close()
@@ -12,9 +25,6 @@ def decode(encoded_file_path, version, timestamp_manager):
     if version == '4':
         p = 8
 
-        print(f"Mystery bytes are {hex(encoded_data[6])} {hex(encoded_data[7])}")
-        print("(is it always 0x00 0x03 ?)")
-
     elif version == '5':
         p = 8
 
@@ -23,19 +33,12 @@ def decode(encoded_file_path, version, timestamp_manager):
         palette.append(color)
         p += 3
     
-    palette_image = Image.new(mode="RGB", size=(16,16))
+    if save_to_file:
+        decoded_file_path = encoded_file_path.replace(".dmp", ".png")
+        save_to_png(palette, decoded_file_path)
 
-    for y in range(16):
-        for x in range(16):
-            color = palette[y * 16 + x]
-            palette_image.putpixel((x, y), color)
-    
-    decoded_file_path = encoded_file_path.replace(".dmp", ".png")
-    palette_image.save(decoded_file_path)
-
-    timestamp_manager.add_timestamp(decoded_file_path)
-
-    print(f"Decoded {encoded_file_path} to {decoded_file_path}")
+        if timestamp_manager != []:
+            timestamp_manager.add_timestamp(decoded_file_path)
 
     return palette
 
@@ -52,8 +55,13 @@ def get_palette_from_png(png_file_path):
     
     return palette
 
-def encode(png_file_path, version):
+def encode(png_file_path, version, timestamp_manager, save_to_file=True):
     palette = get_palette_from_png(png_file_path)
+
+    if not save_to_file:
+        return palette
+    
+    print(f"Encoding {png_file_path}")
 
     encoded_data = []
 
@@ -76,11 +84,14 @@ def encode(png_file_path, version):
     encoded_file.write(bytes(encoded_data))
     encoded_file.close()
 
-    print(f"Encoded {png_file_path} to {encoded_file_path}")
+    if timestamp_manager != []:
+        timestamp_manager.add_timestamp(png_file_path)
+    
+    return palette
 
 if __name__ == "__main__":
-    if sys.argv[1] == 'e':
-        encode(sys.argv[2], sys.argv[3])
+    if sys.argv[1] == 'decode':
+        decode(sys.argv[2], sys.argv[3], [], True)
 
-    if sys.argv[1] == 'd':
-        decode(sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == 'encode':
+        encode(sys.argv[2], sys.argv[3], [])
