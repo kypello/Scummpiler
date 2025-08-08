@@ -1,0 +1,2791 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.0" />
+<title>Scummbler v2</title>
+<style type="text/css">
+/* Debug borders */
+p, li, dt, dd, div, pre, h1, h2, h3, h4, h5, h6 {
+/*
+  border: 1px solid red;
+*/
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+tt {
+  color: navy;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  font-family: sans-serif;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+
+div.sectionbody {
+  font-family: serif;
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+span#author {
+  color: #527bbd;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+span#email {
+}
+span#revnumber, span#revdate, span#revremark {
+  font-family: sans-serif;
+}
+
+div#footer {
+  font-family: sans-serif;
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+div#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+div#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+div#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-family: sans-serif;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid silver;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #dddddd;
+  color: #777777;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-family: sans-serif;
+  font-weight: bold;
+  color: #527bbd;
+}
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  div#footer-badges { display: none; }
+}
+
+div#toc {
+  margin-bottom: 2.5em;
+}
+
+div#toctitle {
+  color: #527bbd;
+  font-family: sans-serif;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+window.onload = function(){asciidoc.footnotes(); asciidoc.toc(2);}
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  var cont = document.getElementById("content");
+  var noteholder = document.getElementById("footnotes");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      // Use [\s\S] in place of . so multi-line matches work.
+      // Because JavaScript has no s (dotall) regex flag.
+      note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      spans[i].innerHTML =
+        "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+        "' title='View footnote' class='footnote'>" + n + "</a>]";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+}
+
+}
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Scummbler v2</h1>
+<span id="author">Laurence Dougal Myers</span><br />
+<span id="email"><tt>&lt;<a href="mailto:jestarjokin@jestarjokin.net">jestarjokin@jestarjokin.net</a>&gt;</tt></span><br />
+<span id="revnumber">version 2.4,</span>
+<span id="revdate">July 2011</span>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_introduction">Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Scummbler is a program that compiles text scripts into a binary format suitable for use in Lucasarts games (which uses a bytecode scripting language called Script Creation Utility for Maniac Mansion, or SCUMM). Currently, it only supports creating scripts for V5 of the SCUMM scripting engine.</p></div>
+<div class="paragraph"><p>Scummbler has been designed to parse text files from <a href="http://www.scummvm.org">ScummVM</a>'s descumm tool. This allows you to easily convert back and forth between bytecode and human-readable code.</p></div>
+<div class="paragraph"><p>Because Scummbly is quite low level (it is merely a human readable version of the SCUMM bytecode), I don&#8217;t think it&#8217;s appropriate for creating any new games; instead, it is more suited for modifying the scripts of existing games to extend their functionality. If you&#8217;re looking to make your own SCUMM-based adventure game, you should investigate <a href="http://alban.dotsec.net/7.html">ScummC</a> and <a href="http://code.google.com/p/scummgen/">ScummGen</a>.</p></div>
+<div class="paragraph"><p>Before you dive into Scummbly, it might be wise to check out the technical reference for the SCUMM engine on the ScummVM wiki. Also, Alban Bedel, the author of ScummC, has some great info on <a href="http://alban.dotsec.net/7.html">his website</a>, although it focuses on SCUMM V6.</p></div>
+<div class="paragraph"><p>For the purposes of this document, I will refer to the textual script as Scummbly, and the bytecode script as SCUMM. Any oddities in the textual script that are artifacts of descumm&#8217;s output, I will refer to as descumm or legacy descumm (see A Note On descumm).</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_usage">Usage</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Run Scummbler from the command line, passing the version of the SCUMM engine you want to target, and one or more filenames of the scripts you want to parse as the arguments (or a directory, which will attempt to parse all *.txt files).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>scummbler -V5 campfire_intro.txt</tt></pre>
+</div></div>
+<div class="paragraph"><p>The resulting file(s) will be named as the input file(s), with a new suffix based on the type of script (which is defined as a compiler directive within the script, explained later). For instance, <em>campfire_intro.txt</em> as a local script will be called <em>campfire_intro.LSCR</em>.</p></div>
+<div class="paragraph"><p>Scummbler also comes with a helper script, <tt>verb_helper.py</tt>, to assist in extracting metadata from existing SCUMM v3 and 4 object scripts. Pass it the original binary script as an argument.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>verb_helper OC_man_of_low_moral_fiber.srb</tt></pre>
+</div></div>
+<div class="paragraph"><p>It will output some Scummbly code to standard output; you will probably want to redirect the output to a text file. You will need to add this line into your text script.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>verb_helper OC_man_of_low_moral_fiber.srb &gt;&gt; out.txt</tt></pre>
+</div></div>
+<div class="paragraph"><p>There are some command-line options, most are self explanatory.</p></div>
+<div class="paragraph"><p>Error reporting is very poor in Scummbler, and will usually not point to the part of the Scummbly script that caused the error, especially if the syntax error is contained within an <tt>if/else</tt> block; this is mostly because of the backtracking behaviour of the parser. If anyone familiar with PyParsing or any similar parsing package can offer advice on how to fix this, please contact me!</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_about_this_document">About This Document</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This document is designed as a reference for the basic grammar of Scummbly. Here are some of the conventions used:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Functions can accept various arguments. The arguments may be typed as one of the following (the details are explained later):
+&#8201;&#8212;&#8201;Variable   = a variable
+&#8201;&#8212;&#8201;Byte       = a byte value (0 to 255, or -128 to 127)
+&#8201;&#8212;&#8201;Word       = a word value (-32,768 to 32,767)
+&#8201;&#8212;&#8201;VarOrByte  = a variable or byte
+&#8201;&#8212;&#8201;VarOrWord  = a variable or word
+&#8201;&#8212;&#8201;String     = text enclosed in double quote marks
+&#8201;&#8212;&#8201;List       = multiple values enclosed in square brackets, seperated by commas
+</p>
+</li>
+<li>
+<p>
+Where instructions or language features are specific only to some versions of the SCUMM engine, they are followed by a list of numbers or identifiers, surrounded by angle brackets and seperated by commas (e.g. <tt>&lt;4, 5&gt;</tt> means the instruction is only supported in versions 4 and 5 of the SCUMM engine).
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_a_note_on_descumm">A Note On descumm</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>descumm is a tool created by the developers of ScummVM. It can be used to decompile binary SCUMM scripts into a human-readable format. However, descumm did not originally intend for these human-readable scripts to be useful for re-compiling into a binary format. As such, there were many errors in the output text, such as inconsistent useage of semi-colons at the end of instructions, extra or missing parentheses, some instructions did not output enough information, unusual method of outputting escape codes in text strings etc.</p></div>
+<div class="paragraph"><p>Most of these errors have now been fixed, although as of the time of writing this (3rd November 2009), the fixes have not made their way into a full release of the ScummVM tools, so you will have to download an SVN daily build.</p></div>
+<div class="paragraph"><p>Any of these quirks that have now been fixed in descumm will be referred to as part of <tt>legacy descumm</tt>. Scummbler has a command-line option to enable parsing of legacy descumm scripts, if required.</p></div>
+<div class="paragraph"><p>I have also noticed that descumm does trip up on some scripts, such as <tt>print</tt> instructions that contain a sequence of escape characters with \x00; sometimes it gets it right, sometimes it thinks the \x00 is a null-terminating character, marking the end of the string. I have also seen scripts that get jumps within if/else blocks output incorrectly; if you are worried about this, descumm has an option to suppress if/else blocks, which should avoid this issue.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basic_syntax">Basic Syntax</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This section describes the base elements that make up Scummbly.</p></div>
+<div class="sect2">
+<h3 id="_constants">Constants</h3>
+<div class="paragraph"><p>Constants can be either bytes or words in size; this will depend on the instruction you are using.</p></div>
+<div class="paragraph"><p>You can also define aliases for variables or constants (see Compiler Directives).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_variables">Variables</h3>
+<div class="paragraph"><p>Variables are specified by their type and an index. They can be global word variables, local script variables, or bit variables.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var[26]
+ Local[4]
+ Bit[105]</tt></pre>
+</div></div>
+<div class="paragraph"><p>There is a limit to the number of each variable type that can be used; this is defined within the game&#8217;s index file (*.000).</p></div>
+<div class="paragraph"><p>Variables can have indirect pointers:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var[26 + 8]
+ Var[26 + Var[28]]</tt></pre>
+</div></div>
+<div class="paragraph"><p>The first example has an offset of <tt>8</tt>, the second example has an offset of whatever the contents of <tt>Var[28]</tt> are. If <tt>Var[28]</tt> contains the value <tt>8</tt>, it will reference the same variable that <tt>Var[26 + 8]</tt> would (i.e. <tt>Var[34]</tt>).</p></div>
+<div class="paragraph"><p>There are a number of global variables that are reserved for use by the SPUTM engine; these can be found in <em>scummbler_vars.py</em>, and are also listed in Appendix A. You can substitute any of these names for the appropraite variable.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> /* These two instructions are functionally the same */
+ VAR_MOUSE_X -= 3
+ Var[44] -= 3</tt></pre>
+</div></div>
+<div class="paragraph"><p>Note that variable names are case sensitive; unnamed variables must begin with a capital, and named variables must be in uppercase.</p></div>
+<div class="paragraph"><p>You can also define aliases for variables or constants (see Compiler Directives).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_argument_lists">Argument Lists</h3>
+<div class="paragraph"><p>Generally, when a function requires a large number of values, it will take them in a list. This list is a series of values (constants or variables, sometimes both and sometimes only one type depending on the instruction), surrounded by square brackets.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> chainScript(3, [Local[0], Local[1]]);</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_strings">Strings</h3>
+<div class="paragraph"><p>String literals are surrounded by double quote marks.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> setObjectName(124,"bucket o' mud")</tt></pre>
+</div></div>
+<div class="paragraph"><p>Strings may contain the the karat character <tt>^</tt>. This can have two meanings:
+ - if followed by a series of digits, the digits are interpreted as a number and treated as an escape character/raw byte. This is only applicable if "legacy" descumm parsing mode is enabled.
+ - otherwise, the SPUTM engine uses the <tt>^</tt> character to represent three ellipses <tt>...</tt> .</p></div>
+<div class="paragraph"><p>To embed non-standard ASCII characters, you can specify a hex code precedeed by a backslash and "x", like so:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> printEgo([Text("No.\xFF\x03Bigger than that.")]);</tt></pre>
+</div></div>
+<div class="paragraph"><p>To include a backslash or double quote marks in the string, add a backslash before it:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> printEgo([Text("What's a \"bunyip\"?")]);
+ printEgo([Text("Backslash \\ forward slash / ")]);</tt></pre>
+</div></div>
+<div class="paragraph"><p>There are also a number of in-line string functions you can include in the string. These are called before, between, or after quoted pieces of text (or even in place of any quoted text), and are concatenated with other quoted text or string functions. Examples:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> printEgo([Text(sound(0x20, 0x30) + "No." + wait() + newline() + "Bigger than that." + keepText())]);</tt></pre>
+</div></div>
+<div class="paragraph"><p>Below are listed the supported string functions.</p></div>
+<div class="sect3">
+<h4 id="_string_functions">String Functions</h4>
+<div class="listingblock">
+<div class="content">
+<pre><tt> newline()
+ keepText()
+ wait()
+ getInt(Var intVar)
+ getVerb(Var verbVar)
+ getName(Var nameVar)
+ getString(Var stringVar)
+ startAnim(Word animNum)
+ sound(DWord offset, DWord vctl_size)
+ setColor(Word colorNum)
+ setFont(Word fontNum)</tt></pre>
+</div></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_instructions">Instructions</h3>
+<div class="paragraph"><p>Each line in Scummbly is considered its own instruction, with the exception of <tt>if</tt> blocks (discussed later).  Instructions can be categorised into four basic types:</p></div>
+<div class="paragraph"><p>1) Inline operations - basic mathematical operations that act on a single variable.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Local[1] += 7</tt></pre>
+</div></div>
+<div class="paragraph"><p>2) Expression mode - complex, chained mathematical operations that can also call other functions.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Exprmode Local[1] = ((124 + Var[309) * 6)</tt></pre>
+</div></div>
+<div class="paragraph"><p>3) Boolean expressions - functions used in <tt>if</tt> statements and <tt>unless</tt> instructions.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> if (Local[2] &gt; Var[308]) {</tt></pre>
+</div></div>
+<div class="paragraph"><p>4) Functions - performs complex actions</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> walkActorTo(Var[1],179,44)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Arguments for functions are seperated by commas.</p></div>
+<div class="paragraph"><p>There are also complex functions that can have sub-instructions. Sometimes these sub-instructions are part of the grammar for the function, other times they stand as a seperate function.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_comments">Comments</h3>
+<div class="paragraph"><p>Scummbly uses C-style comments.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> /* Hi! I'm a C-style comment! I'll make rude remarks behind your back so the ladies all laugh when you walk by! */</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_labels">Labels</h3>
+<div class="paragraph"><p>Labels are used to define targets for any jumping instructions (<tt>unless</tt> or <tt>goto</tt> instructions). They appear at the start of a line and are contained within square brackets.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> [start] Local[1]++;
+         goto start;</tt></pre>
+</div></div>
+<div class="paragraph"><p>Instead of labels as such, descumm outputs the hex offset of each instruction in the script. Scummbler will interpret these offsets as labels.</p></div>
+<div class="paragraph"><p>You cannot have two labels with the same name.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_other_decorations">Other Decorations</h3>
+<div class="paragraph"><p>To maintain compatibility with descumm, Scummbly will successfully parse but ignore a few extra things. These are:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+the opcode (in parentheses between any label and the instruction)*
+</p>
+</li>
+<li>
+<p>
+a trailing semi-colon (descumm is inconsistent in its usage).
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> [0030] (1A)     Var[107] = 0;</tt></pre>
+</div></div>
+<div class="paragraph"><p>*Note that the opcode is required for the <tt>startScript</tt> function in legacy descumm, see its entry for more information.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_control_flow">Control Flow</h3>
+<div class="paragraph"><p>Scummbly supports <tt>if/else</tt> branches, and <tt>do/while</tt>, <tt>while</tt> and C-style <tt>for</tt> loops.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> if (Var[108] &lt; 12) {
+  ...
+ } else if (Var[108] &gt; 12) {
+  ...
+ } else {
+  ...
+ }</tt></pre>
+</div></div>
+<div class="paragraph"><p>Behind the scenes, these blocks are just nice looking <em>unless/goto</em> statements; you can have an empty block which acts as a jump when a certain condition is met. You can get some funny output from descumm, when it thinks a conditional jump is an <em>if</em> block. Also, scripts originally written in SCUMM have dummy jumps at the end of every block in an <em>else if</em> construct; descumm comments them out, so if you take a script from SCUMM &#8594; descumm &#8594; Scummbler, you will not get an output script that is identical to the original SCUMM script.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>do {
+ ...
+} while (Var[108] &lt; 12)</tt></pre>
+</div></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>while (Var[108] &lt; 12) {
+ ...
+}</tt></pre>
+</div></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>for (Var[108] = 0; Var[108] &lt; 12; Var[108]++) {
+ ...
+}</tt></pre>
+</div></div>
+<div class="paragraph"><p>In <tt>for</tt> loops, the initialiser and counting expressions are optional, and can be any Inline Operation. The loop test expression can be any Boolean Expression.</p></div>
+<div class="paragraph"><p>Note that there is no <tt>break</tt> or <tt>continue</tt> statement; you can get the same functionality using <tt>goto</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_ending_a_script">Ending a Script</h3>
+<div class="paragraph"><p>The last instruction in a script must always be the <tt>stopObjectCode</tt> instruction. You can optionally include the text <tt>END</tt> (this is to maintain compatibility with descumm).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> ...
+ [0042] (A0) stopObjectCode()
+ END</tt></pre>
+</div></div>
+<div class="paragraph"><p>Note that object/verb scripts have multiple entry and exit points, and so there may be more than one call to <tt>stopObjectCode</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_compiler_directives">Compiler Directives</h3>
+<div class="paragraph"><p>These directive must appear at the start of the script, before any instructions.</p></div>
+<div class="sect3">
+<h4 id="_aliases_for_constants_and_variables">Aliases for Constants and Variables</h4>
+<div class="paragraph"><p>You can define aliases for constants and variables using the <em>#define</em> keyword. The names can be composed of any alphanumeric character and underscores.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>#define Fink 12
+#define HAS_BEARD Bit[149]
+print(Fink, Text("A beard?!"));
+HAS_BEARD = 1</tt></pre>
+</div></div>
+<div class="paragraph"><p>Note that type information is lost when using <em>#define</em>, so you can easily end up using a word in an instruction that only accepts a byte!</p></div>
+</div>
+<div class="sect3">
+<h4 id="_event_table">Event Table</h4>
+<div class="paragraph"><p>Object/verb scripts require an event table. This defines multiple entry points into the script, based on the <tt>verb</tt> (user interaction, such as "Look at" or "Push"). Here is an example table:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>Events:
+   9 - 0045
+   D - 0041
+  5A - 007F
+  FF - 0085</tt></pre>
+</div></div>
+<div class="paragraph"><p>This table maps verb <tt>9</tt> to the label <tt>0045</tt>, verb <tt>D</tt> to label <tt>0041</tt>, etc.</p></div>
+<div class="paragraph"><p>Normally, you would have a <tt>stopObjectCode</tt> instruction at the end of each verb action. For instance, given the above event table, verb <tt>D</tt> begins at label <tt>0041</tt> and ends before label <tt>0045</tt>, so the script might look like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>Events:
+   9 - 0045
+   D - 0041
+  5A - 007F
+  FF - 0085
+/* Actions for verb "D" */
+[0041] (0A) startScript(216,[])
+[0044] (00) stopObjectCode()
+/* Actions for verb "9" */
+[0045] (40) cutscene([2])
+...
+[0085] (00) stopObjectCode()
+END</tt></pre>
+</div></div>
+<div class="paragraph"><p>If you specify a script number and a script type compiler directive that is anything except <tt>verb</tt> or <tt>object</tt>, your significant other will leave you for a roaming band of gypsies.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_object_data_lt_3_4_gt">Object Data &lt;3, 4&gt;</h4>
+<div class="paragraph"><p>Object scripts in SCUMM 3 and 4 also store some object metadata.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>#object-data [datum1, datum2, ...]</tt></pre>
+</div></div>
+<div class="paragraph"><p>There are multiple entries required in the <tt>object data</tt> directive. All except <tt>unknown</tt> are compulsory.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> id     word
+ unknown        byte (if missing, defaults to 0x00)
+ x-pos  byte
+ y-pos  byte (max value of 127)
+ parent-state   0 or 1
+ width  byte
+ parent byte
+ walk-x word
+ walk-y word
+ height byte (min value of 8)
+ actor-dir      byte (max value of 7)
+ name   string</tt></pre>
+</div></div>
+<div class="paragraph"><p>Here is an example of the object data for the "Men of Low Moral Fiber (pirates)" object in Monkey Island 1 CD.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> #object-data [id 460, unknown 0, x-pos 0, y-pos 10, parent-state 0, width 9, parent 0, walk-x 77, walk-y 126, height 64, actor-dir 0, name "Men of Low Moral Fiber (pirates)"]</tt></pre>
+</div></div>
+<div class="paragraph"><p><tt>descumm</tt> does not output any object metadata when decompiling existing scripts. To acquire this metadata, you can use the external script <tt>verb_helper</tt> included with Scummbler (see: <tt>Usage</tt>).</p></div>
+</div>
+<div class="sect3">
+<h4 id="_script_numbers">Script Numbers</h4>
+<div class="paragraph"><p>You can specify a script number; if you do, the output file will be a considered a <tt>local</tt> script, and output with the appropriate header information.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Script# 201
+ ...</tt></pre>
+</div></div>
+<div class="paragraph"><p>If you specify a script number and a script type compiler directive that is anything except <tt>local</tt>, you will cause the universe to implode in on itself and everyone will be fairly annoyed, especially me, I mean, I just put a load of washing on this morning, and for what? Nothing! Pfah!</p></div>
+</div>
+<div class="sect3">
+<h4 id="_script_type">Script Type</h4>
+<div class="paragraph"><p>You can specify the type of script you want to compile. The default type is a <tt>global</tt> script.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>#script-type local</tt></pre>
+</div></div>
+<div class="paragraph"><p>Possible values:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>global == script can be called from any room
+local  == script can only be called from the containing room
+entry  == room entry script (triggered when character enters a room)
+exit   == room exit script (triggered when character exits a room)
+verb   == defines multiple actions based on player interaction with an object
+object == same as above (convenient alias)</tt></pre>
+</div></div>
+<div class="paragraph"><p>If you specify a <tt>local</tt> script, you must also include the <tt>script number</tt> directive. <tt>verb</tt> scripts must also include the <tt>event table</tt> directive, and for SCUMM 3 or 4 they must also include the <tt>object data</tt> directive.</p></div>
+<div class="paragraph"><p>Scummbler will try to guess the type of script based on any other compiler directives present in the script. If a script number is defined, the script type is assumed to be <tt>local</tt>. If an event table or object metadata is present, the script type is assumed to be <tt>verb</tt>. If any directives are present that specify conflicting script types, all of your dead pets will rise from their graves and whine/meow/gurgle/hiss mercilessly at you for the rest of eternity.</p></div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_inline_operations">Inline Operations</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>All inline operations act on a target variable and an argument (either a variable or a word constant).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Local[1] = 7 /* move */
+ Local[1] += 7 /* addition */
+ Local[1] -= 7 /* subtraction */
+ Local[1] *= 7 /* multiplication */
+ Local[1] /= 7 /* division */
+ Local[1]++ /* increment */
+ Local[1]-- /* decrement */
+ Local[1] &amp;= 7 /* logical AND */
+ Local[1] |= 7 /* logical OR */</tt></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_expression_mode">Expression Mode</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Expression mode is a way to chain mutliple operations together. You can perform any mathematical operations (excluding logical AND, logical OR, increment and decrement), and can also call any functions that return a value. Each operation and pair of values must be surrounded by parentheses.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Exprmode Local[1] = (7 * 4);
+ Exprmode Var[100] = ((120 + Var[165]) - 1);</tt></pre>
+</div></div>
+<div class="paragraph"><p>When including a function, it must be surrounded by angular brackets, and must move the returning value into <tt>VAR_RESULT</tt>.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Exprmode Local[7] = ((&lt;VAR_RESULT = getActorWidth(Local[2])&gt; / 2) + 4);</tt></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_boolean_operations">Boolean Operations</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>These are specific instructions that set a flag in the SPUTM engine, indicating whether the tested condition is true or false. Most boolean operations must test a variable (you can&#8217;t have statements like <tt>if (1)...</tt>).</p></div>
+<div class="sect2">
+<h3 id="_zero_equality">Zero Equality</h3>
+<div class="paragraph"><p>You can test for zero equality or inequality by just having the variable name.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> if (Var[234]) {</tt></pre>
+</div></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> if (!Var[234]) {</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_comparisons">Comparisons</h3>
+<div class="paragraph"><p>These are your standard mathematical comparisons.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> if (Var[234] == 84) {
+ if (Var[234] != 84) {
+ if (Var[234] &lt; 84) {
+ if (Var[234] &lt;= 84) {
+ if (Var[234] &gt; 84) {
+ if (Var[234] &gt;= 84) {</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_class_of_is">Class Of Is</h3>
+<div class="paragraph"><p>Compares the <em>class</em> of the given object number (var or word) against a list of class numbers, returns true if the object matches all of the given classes.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> if (classOfIs(Var[234], [12, 36, 37])) {</tt></pre>
+</div></div>
+<div class="paragraph"><p>Legacy descumm forgets to add a closing parenthesis to this instruction.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_is_actor_in_box">Is Actor In Box</h3>
+<div class="paragraph"><p>Branches if the given actor (var or byte) is in the given box (var or byte).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> if (isActorInBox(Var[234], Var[170])) {</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_if_object_state_lt_3_4_gt">If Object State &lt;3, 4&gt;</h3>
+<div class="paragraph"><p>Compares the <tt>state</tt> of the given object number (var or word) against the given state. Not applicable for SCUMM V5.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> if (getState(Var[234]) == 63) {</tt></pre>
+</div></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> if (getState(Var[234]) != 63) {</tt></pre>
+</div></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_functions">Functions</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>When a function name or definition is followed by numbers in angle brackets, that function is only applicable for those listed versions of the SCUMM engine. Note that <tt>3old</tt> represents the engine used with Indy3, which is mostly the same as <tt>3</tt> with some small differences. Anything listed as supported by SCUMM version <tt>3</tt> is applicable for <tt>3old</tt>.</p></div>
+<div class="sect2">
+<h3 id="_actorfollowcamera">actorFollowCamera</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> actorFollowCamera(VarOrByte actor)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the camera to follow the given actor.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_actorfrompos">actorFrompos</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = actorFromPos(VarOrWord x, VarOrWord y)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the actor located at the given co-ordinates.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_actorops">ActorOps</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> ActorOps(VarOrByte actor, List sub-instructions)</tt></pre>
+</div></div>
+<div class="sect3">
+<h4 id="_actorops_sub_instructions">ActorOps Sub-Instructions</h4>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Unknown(VarOrByte arg1)</tt></pre>
+</div></div>
+<div class="paragraph"><p>A dummy case, does nothing (in ScummVM).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Costume(VarOrByte cost)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the actor&#8217;s costume.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> WalkSpeed(VarOrByte xspeed, VarOrByte yspeed)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the actor&#8217;s walking speed for x and y.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Sound(VarOrByte sound)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Associates a sound with the actor (footsteps?)</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> WalkAnimNr(VarOrByte walkanim)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the current frame of the walking animation.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> TalkAnimNr(VarOrByte startanim, VarOrByte endanim)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the start and stop frames of the talking animation.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> StandAnimNr(VarOrByte standanim)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the current frame of the standing animation.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Nothing(VarOrByte arg1, VarOrByte arg2, VarOrByte arg3)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Unknown; seems to be unused (at least in ScummVM).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Init()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Initializes actor.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Elevation(VarOrWord elev)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the actor&#8217;s elevation to the given value.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> DefaultAnims()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Initializes the actor&#8217;s animation frames.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Init frame = 1
+</p>
+</li>
+<li>
+<p>
+Walk frame = 2
+</p>
+</li>
+<li>
+<p>
+Stand frame = 3
+</p>
+</li>
+<li>
+<p>
+Talk start frame = 4
+</p>
+</li>
+<li>
+<p>
+Talk stop frame = 5
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Palette(VarOrByte index, VarOrByte value)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the colour at the given index to a new value (another entry in the colour lookup table/CLUT). Index must be between 0 and 31 (the number of colours in a costume).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> TalkColor(VarOrByte colour)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the actor&#8217;s talk colour.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Name(String actorname)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the actor&#8217;s name to the given string.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> InitAnimNr(VarOrByte initanim)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the current frame of the initial animation.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Width(VarOrByte width)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the actor&#8217;s width.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Scale(VarOrByte xscale) &lt;3, 4&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the actor&#8217;s X and Y scales at a 1:1 ratio.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Scale(VarOrByte xscale, VarOrByte yscale) <b>&lt;5&gt;</b></tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the actor&#8217;s X and Y scales.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> NeverZClip()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Turns off all Z-clipping for the actor.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> SetZClip(VarOrByte zplane)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Forces the actor&#8217;s Z-clipping for the given Z-plane.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> IgnoreBoxes()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Ignores boxes, turns off Z-clipping, and puts actor somewhere if the actor is in the current room?</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> FollowBoxes()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Follows boxes, turns off Z-clipping, and puts actor somewhere if the actor is in the current room?</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> AnimSpeed(VarOrByte speed)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the animation speed.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> ShadowMode(VarOrByte mode)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the shadow mode.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_actorops_example">ActorOps Example</h4>
+<div class="listingblock">
+<div class="content">
+<pre><tt> ActorOps(8,[Init(),Costume(28),IgnoreBoxes(),NeverZClip(),WalkAnimNr(7),StandAnimNr(7),InitAnimNr(7),WalkSpeed(15,15)]);</tt></pre>
+</div></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_animatecostume">animateCostume</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> animateCostume(VarOrByte actor, VarOrByte anim)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Starts the given animation for the given actor.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_breakhere">breakHere</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> breakHere()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Deschedules the currently running thread. Execution continues at the next instruction when the thread&#8217;s next timeslot comes around.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_chainscript">chainScript</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> chainScript(VarOrByte script, List arguments)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Replaces the currently running script with another one. The current script is terminated immediately and the new script (determined by the given script ID), is executed in the same thread. The new script has its local variables initialised to the list args. Uninitialised variables have undefined values.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_cursor_command_operations">Cursor Command operations</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> CursorShow()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Turns the cursor on.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> CursorHide()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Turns the cursor off.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> UserputOn()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Enables user input.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> UserputOff()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Disables user input.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> CursorSoftOn()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Increments the cursor&#8217;s state?</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> CursorSoftOff()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Decrements the cursor&#8217;s state?</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> UserputSoftOn()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Increments "user input" counter (when greater than 0, user input is enabled).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> UserputSoftOff()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Decrements "user input" counter (when 0 or less, user input is disabled).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> SetCursorImg(VarOrByte cursor, VarOrByte charimg)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Changes the cursor image to a new one, based on image in a character set. Only used in Loom.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> setCursorHotspot(VarOrByte index, VarOrByte x, VarOrByte y)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Changes the hotspot of a cursor. Only used in Loom.</p></div>
+<div class="paragraph"><p>Note that it starts with a lowercase letter.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> InitCursor(VarOrByte cursor)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Changes the current cursor. Must be between 0 and 3 inclusive.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> InitCharset(VarOrByte charset)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Initializes the given character set.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> LoadCharset(VarOrByte arg1, VarOrByte arg2) <b>&lt;3&gt;</b></tt></pre>
+</div></div>
+<div class="paragraph"><p>Loads the given character set (I believe one argument is the room containing the character set).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> CursorCommand(List colours) &lt;4, 5&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>Initializes the character set data &amp; colours to the given arguments? Must have 16 arguments?</p></div>
+</div>
+<div class="sect2">
+<h3 id="_cutscene">cutscene</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> cutscene(List arguments)</tt></pre>
+</div></div>
+<div class="paragraph"><p>??? If required, runs a script passing the given arguments. Cutscene data given by the first argument in the list?</p></div>
+</div>
+<div class="sect2">
+<h3 id="_debug">debug</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> debug(VarOrWord arg1)
+ debug?(VarOrWord arg1)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Passes the parameter to the interpreter&#8217;s debugger. What this does is entirely platform-specific (and may do nothing).</p></div>
+<div class="paragraph"><p>Legacy descumm outputs a question mark in the function name, but this is optional in Scummbly.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_delay">delay</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> delay(Delay del)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Suspends the current thread for the appropriate number of 1/60ths of a second. The Delay argument is a 24-bit constant.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_delayvariable">delayVariable</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> delayVarialbe(Var del)</tt></pre>
+</div></div>
+<div class="paragraph"><p>var is dereferenced and the current thread suspended for that number of 1/60ths of a second.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_dosentence">doSentence</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> doSentence(VarOrByte verb, VarOrWord objectA, VarOrWord objectB)
+ doSentence(STOP)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Performs a verb sentence action, e.g. "Use monkey on hydrant". If verb is STOP, the current sentence script is stopped, status cleared etc.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_drawbox">drawBox</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> drawBox(VarOrWord left, VarOrWord top, VarOrWord right, VarOrWord bottom, VarOrByte colour)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Draws a solid box on the backbuffer from (left, top) to (right, bottom) in the given colour.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_drawobject_operations">drawObject Operations</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> drawObject(VarOrWord object)
+ drawObject(VarOrWord object))</tt></pre>
+</div></div>
+<div class="paragraph"><p>Adds the object to the drawing queue. Legacy descumm adds an extra closing parenthesis.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> drawObject(VarOrWord object, setXY(VarOrWord x, VarOrWord y))</tt></pre>
+</div></div>
+<div class="paragraph"><p>Moves the given object to the given co-ordinates, and adds it to the drawing queue.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> drawObject(VarOrWord object, setImage(VarOrWord image))</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the state of the object, adds it to the drawing queue.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_dummy_lt_5_gt">dummy &lt;5&gt;</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> dummy(A7)</tt></pre>
+</div></div>
+<div class="paragraph"><p>V5 specific - The KIXX XL release of Monkey Island 2 (Amiga disk) used this opcode as a dummy, in order to remove copy protection and keep level selection.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_endcutscene">endCutscene</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> endCutscene</tt></pre>
+</div></div>
+<div class="paragraph"><p>Ends the cutscene, performing cleanup if necessary.</p></div>
+<div class="paragraph"><p>Legacy descumm outputs this instructions without a trailing semi-colon or parentheses.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_faceactor">faceActor</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> faceActor(VarOrByte actor, VarOrWord object)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Tells actor to face object (presumably based on X/Y co-ordinates).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_findinventory">findInventory</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = findInventory(VarOrByte owner, VarOrByte index)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Searches for all objects owned by owner (an actor or object), and returns the one at the given index (offset).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_findobject">findObject</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = findObject(VarOrByte x, VarOrByte y)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the first "touchable" local object at the given co-ordinates. Will not match on the bottom or right-hand edges of an object.</p></div>
+<div class="paragraph"><p>Legacy descumm checks for words here while ScummVM looks for bytes; Scummbler looks for bytes.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_freezescripts">freezeScripts</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> freezeScripts(VarOrByte flag)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Freezes all scripts (by setting the high bit on each script&#8217;s status). If flag is &gt;= $80, all freeze resistent scripts will also be frozen. If flag is 0, all scripts are unfrozen. Freezing effects are cumulative - i.e. if script A is frozen twice, and unfrozen once, it will still be frozen until it is unfrozen a second time.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getactorcostume">getActorCostume</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getActorCostume(VarOrByte actor)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the actor&#8217;s current costume.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getactorelevation">getActorElevation</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getActorElevation(VarOrByte actor)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the actor&#8217;s current elevation.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getactorfacing">getActorFacing</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getActorFacing(VarOrByte actor)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the current direction the actor is facing.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getactormoving">getActorMoving</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getActorMoving(VarOrByte actor)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the actor&#8217;s moving status (0 or 1).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getactorroom">getActorRoom</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getActorRoom(VarOrByte actor)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the room the actor currently occupies.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getactorscale_lt_not_3old_gt">getActorScale &lt;not 3old&gt;</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getActorScale(VarOrByte actor)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the actor&#8217;s current scale.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getactorwalkbox">getActorWalkBox</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getActorWalkBox(VarOrByte actor)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the actor&#8217;s walkbox.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getactorwidth">getActorWidth</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getActorWidth(VarOrByte actor)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the actor&#8217;s width.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getactorx">getActorX</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getActorX(VarOrWord actor)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the actor&#8217;s current X co-ordinate.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getactory">getActorY</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getActorY(VarOrByte actor) &lt;3old&gt;</tt></pre>
+</div></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getActorY(VarOrWord actor) &lt;3, 4, 5&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the actor&#8217;s current Y co-ordinate.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getanimcounter_lt_5_gt">getAnimCounter &lt;5&gt;</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getAnimCounter(VarOrByte actor)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the actor&#8217;s animation counter.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getclosestobjactor">getClosestObjActor</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getClosestObjActor(VarOrByte actor)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the object closest to the actor. Items that are more than 255 units (pixels in SCUMM V5) away from the actor will not be detected.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getdist">getDist</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getDist(VarOrWord x, VarOrWord y)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the distance between two actors/objects (objA and objB).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getinventorycount">getInventoryCount</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getInventoryCount(VarOrByte actor)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the number of items in an actor&#8217;s inventory.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getobjectowner">getObjectOwner</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getObjectOwner(VarOrWord object)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the owner of an object.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getobjectstate">getObjectState</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getObjectState(VarOrWord object)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the state of the object.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getrandomnr">getRandomNr</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getRandomNr(VarOrByte seed)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns a new random number based on the given seed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getstringwidth">getStringWidth</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getStringWidth(VarOrByte)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Gets the length of the string pointed to by strptr (either a variable or direct byte), stores the returned value in result.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getverbentrypoint">getVerbEntryPoint</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = getVerbEntryPoint(VarOrWord object, VarOrWord verb)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns the entry point for the response code/script for when the given verb is applied to the given object. i.e. gets the start of the script to run for the specific user interaction.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_isscriptrunning">isScriptRunning</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = isScriptRunning(VarOrByte script)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns <tt>1</tt> if the given script is running, <tt>0</tt> if it&#8217;s not.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_issoundrunning">isSoundRunning</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = isSoundRunning(VarOrByte sound)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Returns <tt>1</tt> if sound is running, returns <tt>0</tt> if sound is not running or if the given <tt>sound</tt> is <tt>0</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_lights">lights</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> lights(VarOrByte arg1, Byte arg2, Byte arg3)</tt></pre>
+</div></div>
+<div class="paragraph"><p>If <tt>arg3</tt> is <tt>0</tt>, the <em>current lights</em> variable is set to <tt>arg1</tt>.
+If <tt>arg3</tt> is <tt>1</tt>, the size of the <em>flashlight</em> light is determined by <tt>arg1</tt> and <tt>arg2</tt>, for width and height in stripes (which are equivalent to 8 pixels each).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_loadroom">loadRoom</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> loadRoom(VarOrByte room)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Loads the given room into memory.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_loadroomwithego">loadroomWithEgo</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> loadRoomWithEgo(VarOrWord object, VarOrByte room, Word x, Word y)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Places the Ego actor in room at object&#8217;s position. If <tt>x</tt> is not <tt>-1</tt>, Ego will start moving towards the given x and y co-ordinates. If object is not in the given room an error will occur.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_matrix_operations">Matrix Operations</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> setBoxFlags(VarOrByte box, Byte val) <b>&lt;3&gt;</b></tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the box&#8217;s flags to the given value.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> setBoxFlags(VarOrByte box, VarOrByte val) &lt;4, 5&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the box&#8217;s flags to the given value.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> setBoxScale(VarOrByte box, VarOrByte val) &lt;4, 5&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the box&#8217;s scale.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> SetBoxSlot(VarOrByte box, VarOrByte val) &lt;4, 5&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the box&#8217;s scale to <tt>((val - 1) OR $8000)</tt>.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> createBoxMatrix() &lt;4, 5&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>Initializes the matrix of boxes, by determining the distances and shortest paths between boxes.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_oldroomeffect">oldRoomEffect</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt>oldRoomEffect-set(VarOrWord effect)</tt></pre>
+</div></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>oldRoomEffect-fadein(VarOrWord effect)</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_override_operations">Override Operations</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> beginOverride
+ beginOverride()</tt></pre>
+</div></div>
+<div class="paragraph"><p>beginOverride must be immediately followed by a <tt>goto</tt> instruction.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> endOverride
+ endOverride()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Overrides are used by cutscenes; after a beginOverride instruction, if a cutscene is skipped (e.g. if the user presses the ESC key), the script will jump to the instruction pointed to by the <tt>goto</tt> that follows beginOverride (not necessarily the location of endOverride).</p></div>
+<div class="paragraph"><p>Legacy descumm omits the parentheses for both instructions.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_pancamerato">panCameraTo</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> panCameraTo(VarOrWord x)</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_pickupobject">pickupObject</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> pickupObject(VarOrWord object) &lt;3, 4&gt;</tt></pre>
+</div></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> pickupObject(VarOrWord object, VarOrByte room) <b>&lt;5&gt;</b></tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_print_and_printego_operations">Print and PrintEgo Operations</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> print(VarOrByte actor, List sub-instructions)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets text properties for the given actor and displays dialogue.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> printEgo(List sub-instructions)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets text properties for the player character (<tt>VAR_EGO</tt>) and displays dialogue.</p></div>
+<div class="sect3">
+<h4 id="_print_and_printego_sub_instructions">Print and PrintEgo Sub-Instructions</h4>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Pos(VarOrWord x, VarOrWord y)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the position of the text that follows.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Color(VarOrByte colour)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the colour of the text.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Clipped(VarOrWord right)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Clips the text&#8217;s right-hand side (possibly for wrapping).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> RestoreBG(VarOrWord width, VarOrWord height)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Erases characters (not used in ScummVM).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Center()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Centres the text.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Height(VarOrWord y) <b>&lt;3&gt;</b></tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the height of the text.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Left() &lt;4, 5&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>Left-aligns the text.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Overhead()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Overhead-aligns the text.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Text(String text)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Prints the text string that follows. <tt>text</tt> can contain escape characters (escaped with the <tt>^</tt> character).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> PlayCDTrack(VarOrWord offset, VarOrWord duration) <b>&lt;4&gt;</b></tt></pre>
+</div></div>
+<div class="paragraph"><p>Plays the first audio track on the game CD (so actually track 2), from the given offset and for the given duration. Only used in LoomCD.</p></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_pseudoroom">PseudoRoom</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> PseudoRoom(Byte val, List resources)
+ PseudoRoom(Byte val, '[IG]')</tt></pre>
+</div></div>
+<div class="paragraph"><p>Resources are bytes. You can pass the special text <tt>IG</tt> instead of any values in the list.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_putactor">putActor</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> putActor(Byte actor, VarOrWord x, VarOrWord y)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Puts the actor at the given co-ordinates.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_putactoratobject">putActorAtObject</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> putActorAtObject(Byte actor, VarOrWord object)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Puts the actor at the given object&#8217;s position. If the object can not be found, a default position is returned (the centre of the screen in ScummVM).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_putactorinroom">putActorInRoom</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> putActorInRoom(Byte actor, Byte room)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Puts the actor in the given room.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_resource_operations">Resource Operations</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Resource.loadScript(VarOrByte res)
+ Resource.loadSound(VarOrByte res)
+ Resource.loadCostume(VarOrByte res)
+ Resource.loadRoom(VarOrByte res)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Loads the given resource.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Resource.nukeScript(VarOrByte res)
+ Resource.nukeSound(VarOrByte res)
+ Resource.nukeCostume(VarOrByte res)
+ Resource.nukeRoom(VarOrByte res)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Obliterates the resource from memory.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Resource.lockScript(VarOrByte res)
+ Resource.lockSound(VarOrByte res)
+ Resource.lockCostume(VarOrByte res)
+ Resource.lockRoom(VarOrByte res)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Locks the resource.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Resource.unlockScript(VarOrByte res)
+ Resource.unlockSound(VarOrByte res)
+ Resource.unlockCostume(VarOrByte res)
+ Resource.unlockRoom(VarOrByte res)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Unlocks the resource.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Resource.clearHeap()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Clears the heap.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Resource.loadCharset(VarOrByte charset)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Loads the given character set into memory.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Resource.nukeCharset(VarOrByte charset)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Obliterates the given character set from memory.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Resource.loadFlObject(VarOrByte room, VarOrWord object)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Loads an object from the given room resource.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_room_operations">Room Operations</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> RoomScroll(VarOrWord minX, VarOrWord maxX)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Clamps the given arguments so scrolling does not extend past the width of the room or screen.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>RoomColor(VarOrWord colour, VarOrWord index) &lt;3, 4&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the room&#8217;s colour to the given palette index.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> SetScreen(VarOrWord b, VarOrWord h)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Initialises a screen.</p></div>
+<div class="paragraph"><p>Legacy descumm outputs an extra closing parenthesis for RoomIntensity, SetScreen, SetPalColor and possibly others.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> ShakeOn()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Starts the room shaking.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> ShakeOff()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Ends the room shaking.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> RoomIntensity(VarOrByte scale, VarOrByte startcolour, VarOrByte endcolour)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Lightens/darkens the room&#8217;s palette.</p></div>
+<div class="paragraph"><p>Legacy descumm outputs an extra closing parenthesis for RoomIntensity, SetScreen, SetPalColor and possibly others.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> saveLoad(VarOrByte loadflag, VarOrByte loadslot) <b>&lt;5&gt;</b>
+ saveLoad?(VarOrByte loadflag, VarOrByte loadslot)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Saves temporary state of the room/game (possibly autosave). Legacy descumm outputs the function name with a question mark.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> screenEffect(VarOrWord effect) <b>&lt;5&gt;</b>
+ screenEffect?(VarOrWord effect)</tt></pre>
+</div></div>
+<div class="paragraph"><p>If effect is 0, fades in the room. Otherwise, fades out with the given effect (taken from the high byte of effect).</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>1 = iris effect
+2 = box wipe (upper-left to bottom-right)
+3 = box wipe (upper-right to bottem-left)
+4 = inverse box wipe.</tt></pre>
+</div></div>
+<div class="paragraph"><p>Legacy descumm outputs the function name with a question mark.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> colorCycleDelay(VarOrByte index, VarOrByte delay) <b>&lt;5&gt;</b></tt></pre>
+</div></div>
+<div class="paragraph"><p>Starts colour cycling with given delay between changes. <tt>index</tt> is between 0 and 16</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> SetPalColor(VarOrByte colour, VarOrByte index) &lt;3, 4&gt;</tt></pre>
+</div></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> SetPalColor(VarOrWord red, VarOrWord green, VarOrWord blue, VarOrByte index) <b>&lt;5&gt;</b></tt></pre>
+</div></div>
+<div class="paragraph"><p>Adjusts the room&#8217;s palette.</p></div>
+<div class="paragraph"><p>Legacy descumm outputs an extra closing parenthesis for RoomIntensity, SetScreen, SetPalColor and possibly others.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> SetRoomScale(VarOrByte scale1, VarOrByte y1, VarOrByte scale2, VarOrByte y2, VarOrByte slot) <b>&lt;5&gt;</b>
+ Unused(VarOrByte scale1, VarOrByte y1, VarOrByte scale2, VarOrByte y2, VarOrByte slot)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the room&#8217;s y scales (given slot may be 1 greater than actual slot).</p></div>
+<div class="paragraph"><p><tt>Unused</tt> is what legacy descumm calls <tt>SetRoomScale</tt>. They are the same function.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> setRGBRoomIntensity(VarOrWord redscale, VarOrWord greenscale, VarOrWord bluescale, VarOrWord start, VarOrWord end) <b>&lt;5&gt;</b></tt></pre>
+</div></div>
+<div class="paragraph"><p>Lightens/darkens the room&#8217;s palette, with different scales for red, green and blue.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> setRoomShadow(VarOrWord redscale, VarOrWord greenscale, VarOrWord bluescale, VarOrWord start, VarOrWord end) <b>&lt;5&gt;</b></tt></pre>
+</div></div>
+<div class="paragraph"><p>Lightens/darkens the shadow palette, with different scales for red, green, and blue.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> saveString(VarOrByte slot, String text) <b>&lt;5&gt;</b></tt></pre>
+</div></div>
+<div class="paragraph"><p>Saves a string resource to the given file?</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> loadString(VarOrByte slot, String text) <b>&lt;5&gt;</b></tt></pre>
+</div></div>
+<div class="paragraph"><p>Loads a string resource from a given file?</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> palManipulate(VarOrByte slot, VarOrByte start, VarOrByte end, VarOrByte time) <b>&lt;5&gt;</b></tt></pre>
+</div></div>
+<div class="paragraph"><p>Manipulates palettes, strings?</p></div>
+<div class="paragraph"><p>Legacy descumm outputs some functions with question marks in the name; these are optional.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_saveloadgame_lt_3_4_gt">SaveLoadGame &lt;3, 4&gt;</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var target = saveLoadGame(VarOrByte arg1)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Performs various file operations. The operation is determined by taking the highest 3 bits of arg1; the lower 5 bits determine which file/resource slot to use.</p></div>
+<div class="paragraph"><p>Operations:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> 0x00 - Get number of available slots.
+ 0x20 - In SCUMM v3, returns the type of the current drive. In SCUMM v4, sets the drive (returns 1).
+ 0x40 - Loads a game from the given slot (returns 3 if successful, 5 if otherwise).
+ 0x80 - Saves a game to the given slot (returns 0 if successful, 2 if otherwise).
+ 0xC0 - Tests if a game exists in the given slot (returns 6 if occupied, 7 if otherwise).</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_saveloadvars_lt_3_4_gt">SaveLoadVars &lt;3, 4&gt;</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> saveLoadVars(Literal operation, ZeroOrMore Literal subops)</tt></pre>
+</div></div>
+<div class="paragraph"><p>This one&#8217;s a doozy! There&#8217;s two components: the operation (save or load), and zero or more sub-ops.</p></div>
+<div class="paragraph"><p>Possible values for operation are:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Save
+ Load</tt></pre>
+</div></div>
+<div class="paragraph"><p>Possible sub-ops are:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> VarRange(Variable start, Variable end)
+ StringRange(VarOrByte start, VarOrByte end)
+ Open
+ Close*
+ Append*</tt></pre>
+</div></div>
+<div class="paragraph"><p>For <tt>VarRange</tt>, <tt>start</tt> and <tt>end</tt> are the first and last variables to save/load. For <tt>StringRange</tt>, they are resource slots.</p></div>
+<div class="paragraph"><p>*NOTE: If present, <tt>Close</tt> and <tt>Append</tt> must be the last sub-op, and you cannot have both.</p></div>
+<div class="paragraph"><p>Here&#8217;s an example of its usage:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> SaveLoadVars(Save, VarRange(Var[126], Var[139]), Open, Append)</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_save_restore_verbs_operations">Save/Restore Verbs Operations</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> saveVerbs(VarOrByte start, VarOrByte end, VarOrByte mode)</tt></pre>
+</div></div>
+<div class="paragraph"><p>For all verbs between start and end, sets the "saveid" to mode.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> restoreVerbs(VarOrByte start, VarOrByte end, VarOrByte mode)</tt></pre>
+</div></div>
+<div class="paragraph"><p>For all verbs between start and end and matching mode, kills any existing verb, sets the saveid to 0 and generally inits the verb.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> deleteVerbs(VarOrByte start, VarOrByte end, VarOrByte mode)</tt></pre>
+</div></div>
+<div class="paragraph"><p>For all verbs between start and end and matching mode, kills any existing verb.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_setcameraat">setCameraAt</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> setCameraAt(VarOrWord x)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the camera&#8217;s x position.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_setclass">setClass</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> setClass(VarOrWord actor, List classes)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Makes object inherit from all of the given classes. A class of "0" will clear all of the object&#8217;s existing class data.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_setobjectname">setObjectName</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> setObjectName(VarOrWord object, String name)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the given object&#8217;s name.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_setownerof">setOwnerOf</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> setOwnerOf(VarOrWord object, VarOrByte owner)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the owner of the object.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_setstate">setState</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> setState(VarOrWord object, VarOrByte state)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the state of the object.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_setvarrange">setVarRange</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> setVarRange(Var startvar, List values)
+ setVarRange(Var startvar, Byte numvalues, List values)</tt></pre>
+</div></div>
+<div class="paragraph"><p>This assigns a list of values to a range of variables.</p></div>
+<div class="paragraph"><p>Values can be either bytes <em>or</em> words, but not both, and is determined by the maximum value present.</p></div>
+<div class="paragraph"><p>descumm outputs the number of values in the list as <tt>numvalues</tt>, this is optional.</p></div>
+<div class="sect3">
+<h4 id="_setvarrange_example">setVarRange Example</h4>
+<div class="listingblock">
+<div class="content">
+<pre><tt> setVarRange(Var[109], [1, 2, 3, 4, 5, 6])
+ setVarRange(Var[109],6,[1,2,3,4,5,6])</tt></pre>
+</div></div>
+<div class="paragraph"><p>The above instructions are the same, the second instruction just explicitly states the number of values in the list that follows. After running this instruction, the affected variables will look like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var[109] = 1
+ Var[110] = 2
+ Var[111] = 3
+ Var[112] = 4
+ Var[113] = 5
+ Var[114] = 6</tt></pre>
+</div></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_soundkludge_lt_5_gt">soundKludge &lt;5&gt;</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> soundKludge(List imuseinst)</tt></pre>
+</div></div>
+<div class="paragraph"><p>soundKludge adds instructions to the queue for the <tt>iMUSE</tt> dynamic music system. If the first item in the list is <tt>-1</tt>, the existing sound queue is processed. Otherwise, the list of instructions is added to the queue. The instructions are just normal variables or constants.</p></div>
+<div class="paragraph"><p>Alban Bedel, the author of ScummC, has some info on iMUSE at his website: <a href="http://alban.dotsec.net/15.html">http://alban.dotsec.net/15.html</a></p></div>
+</div>
+<div class="sect2">
+<h3 id="_startmusic">startMusic</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> startMusic(VarOrByte song)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Adds the music into the queue to be played.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_startobject">startObject</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> startObject(VarOrWord object, VarOrByte script, List arguments)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Starts the object&#8217;s script (OBCD blocks), passing the given arguments.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_startscript">startScript</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> startScript(VarOrByte script, List arguments[, R][, F])
+ (0A) startScript(VarOrByte script, List arguments)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Spawns a new thread running the code in script script. The new script has its local variables initialised to the list args. Uninitialised variables have undefined values.</p></div>
+<div class="paragraph"><p>The <tt>R</tt> and <tt>F</tt> flags indicate whether the script is recursive and/or freeze resistent.</p></div>
+<div class="paragraph"><p>Legacy descumm does not output these flags, so Scummbler will look at the opcode value. However, you should not include both the opcode and the flags, as they will conflict and lead to ambiguity as to the intended meaning.</p></div>
+<div class="sect3">
+<h4 id="_startscript_examples">startScript Examples</h4>
+<div class="listingblock">
+<div class="content">
+<pre><tt> startScript(124, [Var[278]])
+ (0A) startScript(124, [Var[278]])</tt></pre>
+</div></div>
+<div class="paragraph"><p>Both of the above instructions start script 124 normally.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> startScript(124, [Var[278]], F)
+ (2A) startScript(124, [Var[278]])</tt></pre>
+</div></div>
+<div class="paragraph"><p>Both of the above instructions start script 124 with the <em>freeze resistent</em> flag set.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> (2A) startScript(124, [Var[278]], R)</tt></pre>
+</div></div>
+<div class="paragraph"><p>This will start script 124 with both <em>freeze resistent</em> and <em>recursive</em> flags set, even though the <em>freeze resistent</em> flag has not been specified in the function call, as the flag is present in the original opcode.</p></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_startsound">startSound</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> startSound(VarOrByte sound)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Adds the given sound to the sound queue to be played.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_stopmusic">stopMusic</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> stopMusic()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Stops all sounds.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_stopobjectcode">stopObjectCode</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> stopObjectCode()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Marks the calling script as dead, to be later pruned from the thread pool. Cleans up residual arrays. This must always be the last instruction in every script.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_stopobjectscript">stopObjectScript</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> stopObjectScript(VarOrWord objscript)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Marks the given object script as dead, to be later pruned from the thread pool. Cleans up residual arrays.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_stopscript">stopScript</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> stopScript(VarOrByte script)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Marks the given script as dead, to be later pruned from the thread pool. Cleans up residual arrays.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_stopsound">stopSound</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> stopSound(VarOrByte sound)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Stops the given sound.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_string_operations">String Operations</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> PutCodeInString(VarOrByte resID, String text)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Loads the string into the resource slot given by <tt>resID</tt>.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> CopyString(VarOrByte destinationID, VarOrByte sourceID)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Creates a duplicate of the string at <tt>sourceID</tt> into <tt>destinationID</tt>. The old string at <tt>destinationID</tt> is lost.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> SetStringChar(VarOrByte resID, VarOrByte index, Byte char)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Writes char at the given position <tt>index</tt> of the string resource located at slot <tt>resID</tt>. Out of bounds accesses cause undefined behaviour.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Var result = GetStringChar(VarOrByte resID, VarOrByte index)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Reads a byte (an ASCII character) at the given position <tt>index</tt> of the string resource located at slot <tt>resID</tt>, and writes it to <tt>result</tt>. Out of bounds accesses cause undefined behaviour.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> CreateString(VarOrByte resID, VarOrByte size)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Allocates or frees a string resource, located at resource slot <tt>resID</tt>. The string length is initialised to <tt>size</tt>; if <tt>size</tt> is zero, the string is freed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_systemops">systemOps</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> systemOps(Byte operation)</tt></pre>
+</div></div>
+<div class="paragraph"><p><tt>operation</tt> must be:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><tt>`1` or `RESTART` (to restart the game)
+`2` or `PAUSE` (to pause/unpause the game)
+`3` or `QUIT` (to quit the game)</tt></pre>
+</div></div>
+<div class="paragraph"><p><tt>RESTART</tt>, <tt>PAUSE</tt>, and <tt>QUIT</tt> are special tokens and should not be enclosed in quotes.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_verb_operations">Verb Operations</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> VerbOps(VarOrByte verb, List sub-instruction)</tt></pre>
+</div></div>
+<div class="sect3">
+<h4 id="_verb_sub_instructions">Verb Sub-Instructions</h4>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Image(VarOrWord image)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Assigns an image (object) to a verb.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Text(String name)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Assigns the name to the verb slot.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Color(VarOrByte colour)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the colour of the verb.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> HiColor(VarOrByte hicolour)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the highlight colour of the verb.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> SetXY(VarOrWord x, VarOrWord y)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the verb&#8217;s top-left co-ordinates.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> On()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Makes this verb active.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Off()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Makes this verb inactive.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Delete()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Kills this verb.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> New()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Creates a verb in the slot for the given verb. If the slot is <tt>0</tt> (verb doesn&#8217;t already exist), will add it to the next unusued slot; if this exceeds the global maximum number of verbs an error will be raised.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> DimColor(VarOrByte colour)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the dim colour of the verb.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Dim()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Dims this verb.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Key(VarOrByte key)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the key code associated with this verb.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> Center()</tt></pre>
+</div></div>
+<div class="paragraph"><p>Centres the verb.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> SetToString(VarOrWord stringID)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Loads the given string resource into the verb&#8217;s slot. If either the string resource or verb slot is not found (0), the verb resource is nuked.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> SetToObject(VarOrWord object, VarOrByte room)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Assigns an object from the given room to the verb (if the object&#8217;s image is not already the given object).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> BackColor(VarOrByte colour)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the background colour of the verb.</p></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_wait_operations">Wait Operations</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> WaitForActor(VarOrByte actor) &lt;not 3old&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>If the given <tt>actor</tt> is moving, breaks this script&#8217;s execution and resumes at this instruction again.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> WaitForMessage()</tt></pre>
+</div></div>
+<div class="paragraph"><p>If the global variable <tt>VAR_HAVE_MSG</tt> (<tt>Var[3]</tt>) is not zero, breaks this script&#8217;s execution and resumes at this instruction again.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> WaitForCamera() &lt;not 3old&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>If the camera has not reached its destination x position, breaks this script&#8217;s execution and resumes at this instruction again.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt> WaitForSentence()</tt></pre>
+</div></div>
+<div class="paragraph"><p>If there is a sentence present, breaks this script&#8217;s execution and resumes at this instruction again</p></div>
+</div>
+<div class="sect2">
+<h3 id="_walkactorto">walkActorTo</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> walkActorTo(VarOrByte actor, VarOrWord x, VarOrWord y)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the actor to begin walking to the given position.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_walkactortoactor">walkActorToActor</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> walkActorToActor(VarOrByte walkingactor, VarOrByte targetactor, Byte distance)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Walks <tt>walkingactor</tt> towards <tt>targetactor</tt> by the given <tt>distance</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_walkactortoobject">walkActorToObject</h3>
+<div class="listingblock">
+<div class="content">
+<pre><tt> walkActorToObject(VarOrByte actor, VarOrWord object)</tt></pre>
+</div></div>
+<div class="paragraph"><p>Sets the <tt>actor</tt> to begin walking to the given object&#8217;s position.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_example_scripts">Example Scripts</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_monkey_island_2_introduction">Monkey Island 2 Introduction</h3>
+<div class="paragraph"><p>This is the campfire cutscene from the beginning of Monkey Island 2, as decompiled by descumm.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>Script# 202
+[0000] (40) cutscene([1]);
+[0005] (0C) Resource.loadCharset(4);
+[0008] (58) beginOverride();
+[000A] (18) goto 049D;
+[000D] (11) animateCostume(11,5);
+[0010] (2E) delay(60);
+[0014] (D8) printEgo([Text("So I bust into the church and say, `Now you're in for it, you bilious bag of barnacle bait!`")]);
+[0073] (AE) WaitForMessage();
+[0075] (D8) printEgo([Text("^and then LeChuck cries, `Guybrush!  Have mercy!`\xFF\x03`I can't take it anymore!`")]);
+[00C5] (AE) WaitForMessage();
+[00C7] (11) animateCostume(11,7);
+[00CA] (13) ActorOps(11,[TalkAnimNr(6,7)]);
+[00D0] (14) print(12,[Text("I think I know how he must have felt.")]);
+[00F9] (AE) WaitForMessage();
+[00FB] (14) print(11,[Text("Yeah, if I hear this story one more time, I'm gonna be crying myself.")]);
+[0144] (AE) WaitForMessage();
+[0146] (14) print(12,[Text("Don't you have any NEW stories?")]);
+[0169] (2E) delay(30);
+[016D] (13) ActorOps(11,[TalkAnimNr(4,5)]);
+[0173] (11) animateCostume(11,5);
+[0176] (AE) WaitForMessage();
+[0178] (D8) printEgo([Text("Well, actually, that's why I'm here on Scabb Island.\xFF\x03I'm on a whole new adventure.")]);
+[01CE] (AE) WaitForMessage();
+[01D0] (14) print(11,[Text("Growing a mustache?")]);
+[01E7] (AE) WaitForMessage();
+[01E9] (D8) printEgo([Text("No.\xFF\x03Bigger than that.")]);
+[0202] (AE) WaitForMessage();
+[0204] (14) print(11,[Text("A beard?!?")]);
+[0212] (AE) WaitForMessage();
+[0214] (D8) printEgo([Text("No, I'm in search of treasure.\xFF\x03The biggest treasure of them all.")]);
+[0258] (AE) WaitForMessage();
+[025A] (11) animateCostume(11,7);
+[025D] (D8) printEgo([Text("A treasure so valuable and so well hidden, that it haunts the dreams of every pirate on the seas.")]);
+[02C1] (AE) WaitForMessage();
+[02C3] (11) animateCostume(11,5);
+[02C6] (14) print(11,[Text("You mean^")]);
+[02D3] (AE) WaitForMessage();
+[02D5] (11) animateCostume(11,7);
+[02D8] (2E) delay(60);
+[02DC] (11) animateCostume(11,5);
+[02DF] (2E) delay(30);
+[02E3] (11) animateCostume(11,4);
+[02E6] (14) print(12,[Text("Big Whoop?               \xFF\x02")]);
+[0305] (14) print(255,[Color(235),Text("                               Big Whoop?")]);
+[0334] (AE) WaitForMessage();
+[0336] (11) animateCostume(12,5);
+[0339] (11) animateCostume(11,5);
+[033C] (AE) WaitForMessage();
+[033E] (D8) printEgo([Text("None other.")]);
+[034C] (AE) WaitForMessage();
+[034E] (14) print(12,[Text("Then, why'd you come here?\xFF\x03There's no treasure on Scabb Island!")]);
+[0392] (AE) WaitForMessage();
+[0394] (D8) printEgo([Text("Well, I didn't know that before!\xFF\x03Now I'm trying to charter a ship and look someplace else.")]);
+[03F2] (AE) WaitForMessage();
+[03F4] (D8) printEgo([Text("When I return, I'll have riches galore, and a whole new story.")]);
+[0435] (AE) WaitForMessage();
+[0437] (14) print(12,[Text("Or you'll have died trying.")]);
+[0456] (AE) WaitForMessage();
+[0458] (13) ActorOps(11,[TalkAnimNr(6,7)]);
+[045E] (14) print(11,[Text("Either way, we won't have to hear about LeChuck anymore.")]);
+[049A] (AE) WaitForMessage();
+[049C] (80) breakHere();
+[049D] (58) endOverride();
+[049F] (2C) InitCharset(2);
+[04A2] (1A) Bit[164] = 1;
+[04A7] (AD) putActorInRoom(VAR_EGO,4);
+[04AB] (81) putActor(VAR_EGO,591,140);
+[04B2] (33) screenEffect(129);
+[04B6] (C0) endCutscene();
+[04B7] (2C) CursorShow();
+[04B9] (2C) UserputOn();
+[04BB] (0A) startScript(16,[2]);
+[04C1] (0A) startScript(22,[]);
+[04C4] (D2) actorFollowCamera(VAR_EGO);
+[04C7] (A0) stopObjectCode();
+END</tt></pre>
+</div></div>
+<div class="paragraph"><p>The very first line tells us that this is a local script; that is, it is stored within a room container, and cannot be called from any other room.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>Script# 202</tt></pre>
+</div></div>
+<div class="paragraph"><p>So, what can we do? Let&#8217;s give Guybrush a new story to tell. First, let&#8217;s define a few values for convenience. If you load up Monkey Island 2, you will discover that Fink says the line "I think I know how he must have felt.", and Bart says the line "Yeah, if I hear this story one more time, I&#8217;m gonna be crying myself.". If we look at the calling code&#8230;</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>...
+[00CA] (13) ActorOps(11,[TalkAnimNr(6,7)]);
+[00D0] (14) print(12,[Text("I think I know how he must have felt.")]);
+[00F9] (AE) WaitForMessage();
+[00FB] (14) print(11,[Text("Yeah, if I hear this story one more time, I'm gonna be crying myself.")]);
+...</tt></pre>
+</div></div>
+<div class="olist lowerroman"><ol class="lowerroman">
+<li>
+<p>
+we can determine that actor 12 is Fink and actor 11 is Bart. If you look at the ActorOps instruction above it, we can see that Bart&#8217;s talking animation is changed; from playing the game we can see that it makes Bart face Fink. So, let&#8217;s modify the start of the script to define some known values!
+</p>
+</li>
+</ol></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>#define BART 11
+#define FINK 12
+#define BART_ANIM_FF 6
+#define BART_ANIM_FF_STOP 7
+#define BART_ANIM_FG 4
+#define BART_ANIM_FG_STOP 5
+Script# 202
+[0000] (40) cutscene([1]);
+...</tt></pre>
+</div></div>
+<div class="paragraph"><p>Now, let&#8217;s insert our new conversation, making use of these define values.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>[0146] (14) print(12,[Text("Don't you have any NEW stories?")]);
+[0169] (2E) delay(30);
+[016D] (13) ActorOps(11,[TalkAnimNr(4,5)]);
+[0173] (11) animateCostume(11,5);
+[0176] (AE) WaitForMessage();
+
+/* Here starts our new Scummbly! */
+/* Escape characters \xFF\x03 splits the text across two screens.*/
+printEgo([Text("Uh... well...\xFF\x03Did I tell you I travelled here by strapping two turtles to my feet?")]);
+WaitForMessage();
+print(FINK,[Text("Wasn't that in a movie?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FF_STOP); /* Bart faces Fink */
+ActorOps(BART,[TalkAnimNr(BART_ANIM_FF,BART_ANIM_FF_STOP)]); /* Change talking animation so Bart faces fink */
+print(BART,[Text("I thought it was a theme park ride.")]);
+WaitForMessage();
+print(FINK,[Text("Well, I thought the ride was based on the movie.")]);
+WaitForMessage();
+/* "^" acts as "..." */
+printEgo([Text("Uh^\xFF\x03guys?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FG_STOP); /* Bart faces Guybrush */
+delay(60); /* Wait 1 second */
+animateCostume(BART,BART_ANIM_FF_STOP); /* Bart faces Fink */
+print(BART,[Text("Not exactly^ the movie was inspired by an earlier version of the ride.")]);
+WaitForMessage();
+print(FINK,[Text("Oh, I see.\xFF\x03So it goes, ride, movie, ride?")]);
+WaitForMessage();
+print(FINK,[Text("Yeah, pretty much.")]);
+WaitForMessage();
+printEgo([Text("^ guuuuuyyyyysss?")]);
+WaitForMessage();
+delay(120); /* Wait 2 seconds */
+print(FINK,[Text("What was that movie called?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FG_STOP);
+printEgo([Text("OKAY!\xFF\x03I STOLE THAT STORY FROM A MOVIE!\xFF\x03CAN WE MOVE ON NOW?!")]);
+WaitForMessage();
+delay(60); /* Bart nervously glances at Fink */
+animateCostume(BART,BART_ANIM_FF_STOP);
+delay(60);
+animateCostume(BART,BART_ANIM_FG_STOP);
+delay(60);
+ActorOps(BART,[TalkAnimNr(BART_ANIM_FG,BART_ANIM_FG_STOP)]); /* Bart address Guybrush again */
+print(11,[Text("You stole that story from a RIDE-")]);
+delay(50);
+printEgo([Text("AAAUUUUGGGGHH!")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FF_STOP);
+delay(60);
+print(FINK,[Text("So^\xFF\x03^any new stories that you DIDN'T steal from a movie-slash-ride?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FG_STOP);
+/* And here ends our new Scummbly... *sniff* */
+
+[0178] (D8) printEgo([Text("Well, actually, that's why I'm here on Scabb Island.^255^3I'm on a whole new adventure.")]);</tt></pre>
+</div></div>
+<div class="paragraph"><p>Our final script now looks like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>#define BART 11
+#define FINK 12
+#define BART_ANIM_FF 6
+#define BART_ANIM_FF_STOP 7
+#define BART_ANIM_FG 4
+#define BART_ANIM_FG_STOP 5
+Script# 202
+[0000] (40) cutscene([1]);
+[0005] (0C) Resource.loadCharset(4);
+[0008] (58) beginOverride();
+[000A] (18) goto 049D;
+[000D] (11) animateCostume(11,5);
+[0010] (2E) delay(60);
+[0014] (D8) printEgo([Text("So I bust into the church and say, `Now you're in for it, you bilious bag of barnacle bait!`")]);
+[0073] (AE) WaitForMessage();
+[0075] (D8) printEgo([Text("^and then LeChuck cries, `Guybrush!  Have mercy!`\xFF\x03`I can't take it anymore!`")]);
+[00C5] (AE) WaitForMessage();
+[00C7] (11) animateCostume(11,7);
+[00CA] (13) ActorOps(11,[TalkAnimNr(6,7)]);
+[00D0] (14) print(12,[Text("I think I know how he must have felt.")]);
+[00F9] (AE) WaitForMessage();
+[00FB] (14) print(11,[Text("Yeah, if I hear this story one more time, I'm gonna be crying myself.")]);
+[0144] (AE) WaitForMessage();
+[0146] (14) print(12,[Text("Don't you have any NEW stories?")]);
+[0169] (2E) delay(30);
+[016D] (13) ActorOps(11,[TalkAnimNr(4,5)]);
+[0173] (11) animateCostume(11,5);
+[0176] (AE) WaitForMessage();
+
+/* Here starts our new Scummbly! */
+/* Escape characters \xFF\x03 splits the text across two screens.*/
+printEgo([Text("Uh... well...\xFF\x03Did I tell you I travelled here by strapping two turtles to my feet?")]);
+WaitForMessage();
+print(FINK,[Text("Wasn't that in a movie?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FF_STOP); /* Bart faces Fink */
+ActorOps(BART,[TalkAnimNr(BART_ANIM_FF,BART_ANIM_FF_STOP)]); /* Change talking animation so Bart faces fink */
+print(BART,[Text("I thought it was a theme park ride.")]);
+WaitForMessage();
+print(FINK,[Text("Well, I thought the ride was based on the movie.")]);
+WaitForMessage();
+/* "^" acts as "..." */
+printEgo([Text("Uh^\xFF\x03guys?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FG_STOP); /* Bart faces Guybrush */
+delay(60); /* Wait 1 second */
+animateCostume(BART,BART_ANIM_FF_STOP); /* Bart faces Fink */
+print(BART,[Text("Not exactly^ the movie was inspired by an earlier version of the ride.")]);
+WaitForMessage();
+print(FINK,[Text("Oh, I see.\xFF\x03So it goes, ride, movie, ride?")]);
+WaitForMessage();
+print(FINK,[Text("Yeah, pretty much.")]);
+WaitForMessage();
+printEgo([Text("^ guuuuuyyyyysss?")]);
+WaitForMessage();
+delay(120); /* Wait 2 seconds */
+print(FINK,[Text("What was that movie called?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FG_STOP);
+printEgo([Text("OKAY!\xFF\x03I STOLE THAT STORY FROM A MOVIE!\xFF\x03CAN WE MOVE ON NOW?!")]);
+WaitForMessage();
+delay(60); /* Bart nervously glances at Fink */
+animateCostume(BART,BART_ANIM_FF_STOP);
+delay(60);
+animateCostume(BART,BART_ANIM_FG_STOP);
+delay(60);
+ActorOps(BART,[TalkAnimNr(BART_ANIM_FG,BART_ANIM_FG_STOP)]); /* Bart address Guybrush again */
+print(11,[Text("You stole that story from a RIDE-")]);
+delay(50);
+printEgo([Text("AAAUUUUGGGGHH!")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FF_STOP);
+delay(60);
+print(FINK,[Text("So^\xFF\x03^any new stories that you DIDN'T steal from a movie-slash-ride?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FG_STOP);
+/* And here ends our new Scummbly... *sniff* */
+
+[0178] (D8) printEgo([Text("Well, actually, that's why I'm here on Scabb Island.^255^3I'm on a whole new adventure.")]);
+[01CE] (AE) WaitForMessage();
+[01D0] (14) print(11,[Text("Growing a mustache?")]);
+[01E7] (AE) WaitForMessage();
+[01E9] (D8) printEgo([Text("No.\xFF\x03Bigger than that.")]);
+[0202] (AE) WaitForMessage();
+[0204] (14) print(11,[Text("A beard?!?")]);
+[0212] (AE) WaitForMessage();
+[0214] (D8) printEgo([Text("No, I'm in search of treasure.\xFF\x03The biggest treasure of them all.")]);
+[0258] (AE) WaitForMessage();
+[025A] (11) animateCostume(11,7);
+[025D] (D8) printEgo([Text("A treasure so valuable and so well hidden, that it haunts the dreams of every pirate on the seas.")]);
+[02C1] (AE) WaitForMessage();
+[02C3] (11) animateCostume(11,5);
+[02C6] (14) print(11,[Text("You mean^")]);
+[02D3] (AE) WaitForMessage();
+[02D5] (11) animateCostume(11,7);
+[02D8] (2E) delay(60);
+[02DC] (11) animateCostume(11,5);
+[02DF] (2E) delay(30);
+[02E3] (11) animateCostume(11,4);
+[02E6] (14) print(12,[Text("Big Whoop?               \xFF\x02")]);
+[0305] (14) print(255,[Color(235),Text("                               Big Whoop?")]);
+[0334] (AE) WaitForMessage();
+[0336] (11) animateCostume(12,5);
+[0339] (11) animateCostume(11,5);
+[033C] (AE) WaitForMessage();
+[033E] (D8) printEgo([Text("None other.")]);
+[034C] (AE) WaitForMessage();
+[034E] (14) print(12,[Text("Then, why'd you come here?\xFF\x03There's no treasure on Scabb Island!")]);
+[0392] (AE) WaitForMessage();
+[0394] (D8) printEgo([Text("Well, I didn't know that before!\xFF\x03Now I'm trying to charter a ship and look someplace else.")]);
+[03F2] (AE) WaitForMessage();
+[03F4] (D8) printEgo([Text("When I return, I'll have riches galore, and a whole new story.")]);
+[0435] (AE) WaitForMessage();
+[0437] (14) print(12,[Text("Or you'll have died trying.")]);
+[0456] (AE) WaitForMessage();
+[0458] (13) ActorOps(11,[TalkAnimNr(6,7)]);
+[045E] (14) print(11,[Text("Either way, we won't have to hear about LeChuck anymore.")]);
+[049A] (AE) WaitForMessage();
+[049C] (80) breakHere();
+[049D] (58) endOverride();
+[049F] (2C) InitCharset(2);
+[04A2] (1A) Bit[164] = 1;
+[04A7] (AD) putActorInRoom(VAR_EGO,4);
+[04AB] (81) putActor(VAR_EGO,591,140);
+[04B2] (33) screenEffect(129);
+[04B6] (C0) endCutscene();
+[04B7] (2C) CursorShow();
+[04B9] (2C) UserputOn();
+[04BB] (0A) startScript(16,[2]);
+[04C1] (0A) startScript(22,[]);
+[04C4] (D2) actorFollowCamera(VAR_EGO);
+[04C7] (A0) stopObjectCode();
+END</tt></pre>
+</div></div>
+<div class="paragraph"><p>Because Scummbler treats the bits in square brackets as labels, we preserve the existing jump at [000A] that goes to [049D], even though the number of instructions between them has increased.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_appendix_a_known_variable_names_for_scumm_v5">Appendix A: Known variable names (for SCUMM V5)</h2>
+<div class="sectionbody">
+<div class="literalblock">
+<div class="content">
+<pre><tt># /* 0 */
+"VAR_RESULT",
+"VAR_EGO",
+"VAR_CAMERA_POS_X",
+"VAR_HAVE_MSG",
+# /* 4 */
+"VAR_ROOM",
+"VAR_OVERRIDE",
+"VAR_MACHINE_SPEED",
+"VAR_ME",
+# /* 8 */
+"VAR_NUM_ACTOR",
+"VAR_CURRENT_LIGHTS",
+"VAR_CURRENTDRIVE",
+"VAR_TMR_1",
+# /* 12 */
+"VAR_TMR_2",
+"VAR_TMR_3",
+"VAR_MUSIC_TIMER",
+"VAR_ACTOR_RANGE_MIN",
+# /* 16 */
+"VAR_ACTOR_RANGE_MAX",
+"VAR_CAMERA_MIN_X",
+"VAR_CAMERA_MAX_X",
+"VAR_TIMER_NEXT",
+# /* 20 */
+"VAR_VIRT_MOUSE_X",
+"VAR_VIRT_MOUSE_Y",
+"VAR_ROOM_RESOURCE",
+"VAR_LAST_SOUND",
+# /* 24 */
+"VAR_CUTSCENEEXIT_KEY",
+"VAR_TALK_ACTOR",
+"VAR_CAMERA_FAST_X",
+"VAR_SCROLL_SCRIPT",
+# /* 28 */
+"VAR_ENTRY_SCRIPT",
+"VAR_ENTRY_SCRIPT2",
+"VAR_EXIT_SCRIPT",
+"VAR_EXIT_SCRIPT2",
+# /* 32 */
+"VAR_VERB_SCRIPT",
+"VAR_SENTENCE_SCRIPT",
+"VAR_INVENTORY_SCRIPT",
+"VAR_CUTSCENE_START_SCRIPT",
+# /* 36 */
+"VAR_CUTSCENE_END_SCRIPT",
+"VAR_CHARINC",
+"VAR_WALKTO_OBJ",
+"VAR_DEBUGMODE",
+# /* 40 */
+"VAR_HEAPSPACE",
+"VAR_TALK_ACTOR",
+"VAR_RESTART_KEY",
+"VAR_PAUSE_KEY",
+# /* 44 */
+"VAR_MOUSE_X",
+"VAR_MOUSE_Y",
+"VAR_TIMER",
+"VAR_TMR_4",
+# /* 48 */
+"VAR_SOUNDCARD",
+"VAR_VIDEOMODE",
+"VAR_MAINMENU_KEY",
+"VAR_FIXEDDISK",
+# /* 52 */
+"VAR_CURSORSTATE",
+"VAR_USERPUT",
+"VAR_V5_TALK_STRING_Y",
+None, # NULL
+# /* 56 */
+"VAR_SOUNDRESULT",
+"VAR_TALKSTOP_KEY",
+None, # NULL
+"VAR_FADE_DELAY",
+# /* 60 */
+"VAR_NOSUBTITLES",
+None, # NULL
+None, # NULL
+None, # NULL
+# /* 64 */
+"VAR_SOUNDPARAM",
+"VAR_SOUNDPARAM2",
+"VAR_SOUNDPARAM3",
+"VAR_INPUTMODE",
+# /* 68 */
+"VAR_MEMORY_PERFORMANCE",
+"VAR_VIDEO_PERFORMANCE",
+"VAR_ROOM_FLAG",
+"VAR_GAME_LOADED",
+# /* 72 */
+"VAR_NEW_ROOM"</tt></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_contact_information">Contact Information</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Any support queries can be directed to the jestar jokin mailing list.
+<a href="mailto:support@lists.jestarjokin.net">support@lists.jestarjokin.net</a></p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Version 2.4<br />
+Last updated 2011-07-12 20:12:22 AUS Eastern Standard Time
+</div>
+</div>
+</body>
+</html>

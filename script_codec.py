@@ -1,10 +1,16 @@
 import os, sys, re, json, timestamp_manager
 from subprocess import run
+from pathlib import Path
 
-tools_path = os.path.join(sys.argv[0].replace("script_codec.py", "").replace("scummpiler.py", ""), "Tools")
-descumm_path = os.path.join(tools_path, "ScummVMTools", "descumm.exe")
-verb_helper_p2_path = os.path.join(tools_path, "JestarJokin", "scummbler_py2", "src", "verb_helper.py")
-scummbler_py2_path = os.path.join(tools_path, "JestarJokin", "scummbler_py2", "src", "scummbler.py")
+python_scripts_path = Path(__file__).resolve().parent
+tools_path = Path(python_scripts_path, "Tools")
+descumm_path = Path(tools_path, "ScummVMTools", "descumm.exe")
+
+verb_helper_py2_path = Path(tools_path, "JestarJokin", "scummbler_py2", "src", "verb_helper.py")
+scummbler_py2_path = Path(tools_path, "JestarJokin", "scummbler_py2", "src", "scummbler.py")
+
+verb_helper_exe_path = Path(tools_path, "JestarJokin", "scummbler_exe", "verb_helper.exe")
+scummbler_exe_path = Path(tools_path, "JestarJokin", "scummbler_exe", "scummbler.exe")
 
 object_functions_v4 = {
 	"1": "open",
@@ -42,22 +48,19 @@ object_functions_v5 = {
 }
 
 
-def identify_script_type(bytecode_file_path):
-    split_file_path = bytecode_file_path.split(os.path.sep)
-    file_name = split_file_path[len(split_file_path) - 1]
-
-    if file_name.startswith("SC") or file_name.startswith("_SC"):
+def identify_script_type(script_path):
+    if script_path.name.startswith("SC") or script_path.name.startswith("_SC"):
         return "global"
-    elif file_name.startswith("LS"):
+    elif script_path.name.startswith("LS"):
         return "local"
-    elif file_name.startswith("EN"):
+    elif script_path.name.startswith("EN"):
         return "enter"
-    elif file_name.startswith("EX"):
+    elif script_path.name.startswith("EX"):
         return "exit"
-    elif file_name.startswith("OC") or file_name.startswith("VERB"):
+    elif script_path.name.startswith("OC") or script_path.name.startswith("VERB"):
         return "object"
     else:
-        print(f"Error: file {file_name} of unrecognized script type")
+        print(f"Error: file {script_path} of unrecognized script type")
         return "unknown"
 
 def fix_descumm_glitches(script):
@@ -76,7 +79,12 @@ def fix_v4_object_metadata(script, file_path):
     if script == "Events\nEND\n":
         script = "Events\n    FF - default\n[default] stopObjectCode()\nEND\n"
     
-    metadata = run('python2 ' + verb_helper_p2_path + ' "' + file_path + '"', capture_output = True, shell = True).stdout
+    metadata = ""
+
+    if os.name == 'posix':
+        metadata = run(f'python2 {verb_helper_py2_path} "{file_path}"', capture_output = True, shell = True).stdout
+    elif os.name == 'nt':
+        metadata = run(f'{verb_helper_exe_path} "{file_path}"', capture_output = True, shell = True).stdout
 
     metadata = metadata.replace(b"\x88", "\\x88".encode()).replace(b"\x82", "\\x82".encode()).replace(b"\x0F", "\\x0F".encode()).replace(b"\x07", "\\x07".encode())
     script = metadata.decode() + script
@@ -111,8 +119,12 @@ def decode(bytecode_file_path, version, timestamp_manager):
     print(f"Decoding {bytecode_file_path}")
 
     script_type = identify_script_type(bytecode_file_path)
+    script = ""
 
-    script = os.popen(f'wine {descumm_path} -{version} "{bytecode_file_path}"').read()
+    if os.name == 'posix':
+        script = os.popen(f'wine {descumm_path} -{version} "{bytecode_file_path}"').read()
+    elif os.name == 'nt':
+        script = os.popen(f'{descumm_path} -{version} "{bytecode_file_path}"').read()
 
     script = fix_descumm_glitches(script)
 
@@ -122,13 +134,13 @@ def decode(bytecode_file_path, version, timestamp_manager):
         if version == '4':
             script = fix_v4_object_metadata(script, bytecode_file_path)
     
-    script_file_path = bytecode_file_path.replace(".dmp", ".txt")
+    script_file_path = Path(bytecode_file_path.parent, bytecode_file_path.name.replace(".dmp", ".txt"))
 
     if script_type == "global":
         if version == '4':
-            script_file_path = script_file_path.replace("SC_", "_SC_")
+            script_file_path = Path(script_file_path.parent, script_file_path.name.replace("SC_", "_SC_"))
         elif version == '5':
-            script_file_path = script_file_path.replace("SCRP_", "_SCRP_")
+            script_file_path = Path(script_file_path.parent, script_file_path.name.replace("SCRP_", "_SCRP_"))
     
     script_file = open(script_file_path, 'w')
     script_file.write(script)
@@ -199,13 +211,16 @@ def encode(script_file_path, version, timestamp_manager):
     script = prepare_special_characters(script)
 
     scummbler_file_extension = get_scummbler_file_extension(script_type, version)
-    middleman_file_path = script_file_path.replace(".txt", scummbler_file_extension)
+    middleman_file_path = Path(script_file_path.parent, script_file_path.name.replace(".txt", scummbler_file_extension))
 
     middleman_file = open(middleman_file_path, 'wb')
     middleman_file.write(script)
     middleman_file.close()
 
-    os.system(f'python2 {scummbler_py2_path} -v {version} -l "{middleman_file_path}"')
+    if os.name == 'posix':
+        os.system(f'python2 {scummbler_py2_path} -v {version} -l "{middleman_file_path}"')
+    elif os.name == 'nt':
+        os.system(f'{scummbler_exe_path} -v {version} -l "{middleman_file_path}"')
 
     middleman_file = open(middleman_file_path, 'rb')
     bytecode = middleman_file.read()
@@ -214,9 +229,9 @@ def encode(script_file_path, version, timestamp_manager):
     if script_type == "enter" or script_type == "exit":
         bytecode = fix_bytecode_header(bytecode, script_type, version)
 
-    bytecode_file_path = script_file_path.replace(".txt", ".dmp")
+    bytecode_file_path = Path(script_file_path.parent, script_file_path.name.replace(".txt", ".dmp"))
     if script_type == "global":
-        bytecode_file_path = bytecode_file_path.replace("_SC", "SC")
+        bytecode_file_path = Path(bytecode_file_path.parent, bytecode_file_path.name.replace("_SC", "SC"))
     
     bytecode_file = open(bytecode_file_path, 'wb')
     bytecode_file.write(bytecode)
@@ -227,7 +242,7 @@ def encode(script_file_path, version, timestamp_manager):
 
 if __name__ == "__main__":
     if sys.argv[1] == 'decode':
-	    decode(sys.argv[2], sys.argv[3], [])
+	    decode(Path(sys.argv[2]).resolve(), sys.argv[3], [])
     elif sys.argv[1] == 'encode':
-        encode(sys.argv[2], sys.argv[3], [])
+        encode(Path(sys.argv[2]).resolve(), sys.argv[3], [])
 

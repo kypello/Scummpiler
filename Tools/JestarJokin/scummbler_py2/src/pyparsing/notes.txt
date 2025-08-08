@@ -1,0 +1,2 @@
+This is based on Pyparsing 1.5.1, and integrates the "lastLineLoc" patch by "Gre7g Luterman", first detailed on the pyparsing mailing list (the URL of the archived message is below). It is otherwise unchanged from the standard Pyparsing library.
+http://osdir.com/ml/python.pyparsing.user/2008-04/msg00021.html

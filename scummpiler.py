@@ -3,8 +3,11 @@ from timestamp_manager import *
 from pathlib import Path
 import script_codec, box_codec, scale_codec, palette_codec, image_codec, costume_codec
 
-tools_path = os.path.join(sys.argv[0].replace("scummpiler.py", ""), "Tools", "JestarJokin")
-scummpacker_py2_path = os.path.join(tools_path, "scummpacker_py2", "src", "scummpacker.py")
+python_scripts_path = Path(__file__).resolve().parent
+tools_path = Path(python_scripts_path, "Tools", "JestarJokin")
+
+scummpacker_py2_path = Path(tools_path, "scummpacker_py2", "src", "scummpacker.py")
+scummpacker_exe_path = Path(tools_path, "scummpacker_exe", "scummpacker.exe")
 
 supported_games = ['MI1EGA', 'MI1VGA', 'MI1CD', 'MI2']
 version_table = {
@@ -101,28 +104,26 @@ class FileCrawler:
         self.file_types_to_target = file_types_to_target
         self.timestamp_manager = timestamp_manager
     
-    def crawl_folder(self, folder_path, folder_name=""):
+    def crawl_folder(self, folder_path):
         folder_type = ""
         if self.version == '4':
-            folder_type = identify_folder_type_v4(folder_name)
+            folder_type = identify_folder_type_v4(folder_path.name)
         elif self.version == '5':
-            folder_type = identify_folder_type_v5(folder_name)
+            folder_type = identify_folder_type_v5(folder_path.name)
 
         if folder_type == "costume":
-            self.process_folder(folder_path, folder_name, folder_type)
+            self.process_folder(folder_path, folder_type)
             return
 
-        folder_contents = os.scandir(folder_path)
-
-        for entry in folder_contents:
+        for entry in folder_path.iterdir():
             if entry.is_dir():
-                self.crawl_folder(entry.path, entry.name)
+                self.crawl_folder(entry)
             elif entry.is_file():
-                self.process_file(entry.path, entry.name)
+                self.process_file(entry)
         
         if folder_type == "lfl":
             for queued_file in self.palette_dependent_queue:
-                self.process_file(queued_file[0], queued_file[1])
+                self.process_file(queued_file)
             
             self.palette_dependent_queue = []
             self.room_palette_found = False
@@ -132,8 +133,8 @@ class FileCrawlerDecomp(FileCrawler):
     def __init__(self, version, video_type, file_types_to_target, timestamp_manager):
         super().__init__(version, video_type, file_types_to_target, timestamp_manager)
 
-    def process_file(self, file_path, file_name):
-        file_status = identify_file_status(file_name)
+    def process_file(self, file_path):
+        file_status = identify_file_status(file_path.name)
 
         if file_status == "xml":
             self.timestamp_manager.add_timestamp(file_path)
@@ -143,9 +144,9 @@ class FileCrawlerDecomp(FileCrawler):
         
         file_type = ""
         if self.version == '4':
-            file_type = identify_file_type_v4(file_name)
+            file_type = identify_file_type_v4(file_path.name)
         elif self.version == '5':
-            file_type = identify_file_type_v5(file_name)
+            file_type = identify_file_type_v5(file_path.name)
 
         if file_type == "palette":
             targeting_palette_files = "palette" in self.file_types_to_target
@@ -163,18 +164,18 @@ class FileCrawlerDecomp(FileCrawler):
                 scale_codec.decode(file_path, self.version, self.timestamp_manager)
             elif file_type == "image":
                 if self.video_type == 'vga' and not self.room_palette_found:
-                    self.palette_dependent_queue.append((file_path, file_name))
+                    self.palette_dependent_queue.append(file_path)
                 else:
                     image_codec.decode(file_path, self.version, self.timestamp_manager, self.video_type, self.room_palette)
             elif file_type == "costume":
                 if self.video_type == 'vga' and not self.room_palette_found:
-                    self.palette_dependent_queue.append((file_path, file_name))
+                    self.palette_dependent_queue.append(file_path)
                 else:
                     costume_codec.decode(file_path, self.version, self.timestamp_manager, self.video_type, self.room_palette)
             elif file_type == "zplane":
                 image_codec.decode(file_path, self.version, self.timestamp_manager, 'zplane')
 
-    def process_folder(self, folder_path, folder_name, folder_type):
+    def process_folder(self, folder_path, folder_type):
         return
 
     
@@ -184,8 +185,8 @@ class FileCrawlerBuild(FileCrawler):
     def __init__(self, version, video_type, file_types_to_target, timestamp_manager):
         super().__init__(version, video_type, file_types_to_target, timestamp_manager)
     
-    def process_file(self, file_path, file_name):
-        file_status = identify_file_status(file_name)
+    def process_file(self, file_path):
+        file_status = identify_file_status(file_path.name)
 
         if file_status == "xml":
             self.timestamp_manager.touch_timestamp(file_path)
@@ -193,9 +194,9 @@ class FileCrawlerBuild(FileCrawler):
 
         file_type = ""
         if self.version == '4':
-            file_type = identify_file_type_v4(file_name)
+            file_type = identify_file_type_v4(file_path.name)
         elif self.version == '5':
-            file_type = identify_file_type_v5(file_name)
+            file_type = identify_file_type_v5(file_path.name)
         
         if file_type == "palette":
             if file_status == "decoded":
@@ -206,8 +207,9 @@ class FileCrawlerBuild(FileCrawler):
                 self.room_palette_found = True
             
             elif file_status == "binary":
-                decoded_palette_file_name = file_name.replace(".dmp", ".png")
-                if (not self.room_palette_found) and (not Path(Path(file_path).parent, decoded_palette_file_name).exists()):
+                decoded_palette_path = Path(file_path.parent, file_path.name.replace(".dmp", ".png"))
+
+                if (not self.room_palette_found) and (not decoded_palette_path.is_file()):
                     self.room_palette = palette_codec.decode(file_path, self.version, self.timestamp_manager, False)
                     self.room_palette_found = True
             
@@ -225,46 +227,46 @@ class FileCrawlerBuild(FileCrawler):
                 scale_codec.encode(file_path, self.version, self.timestamp_manager)
             elif file_type == "image":
                 if self.video_type == 'vga' and not self.room_palette_found:
-                    self.palette_dependent_queue.append((file_path, file_name))
+                    self.palette_dependent_queue.append(file_path)
                 else:
                     image_codec.encode(file_path, self.version, self.timestamp_manager, self.video_type, self.room_palette)
             elif file_type == 'zplane':
                 if self.version == '4' and self.video_type == 'vga' and not self.room_palette_found:
-                    self.palette_dependent_queue.append((file_path, file_name))
+                    self.palette_dependent_queue.append(file_path)
                 else:
                     image_codec.encode(file_path, self.version, self.timestamp_manager, self.video_type, self.room_palette)
             elif file_type == 'costume':
                 if self.video_type == 'vga' and not self.room_palette_found:
-                    self.palette_dependent_queue.append((file_path, file_name))
+                    self.palette_dependent_queue.append(file_path)
                 else:
                     costume_codec.encode(file_path, self.version, self.timestamp_manager, self.video_type, self.room_palette)
 
 
 
-    def process_folder(self, folder_path, folder_name, folder_type):
+    def process_folder(self, folder_path, folder_type):
         return
 
 def add_room_names(decomp_path, game_id):
     room_root_paths = []
 
     if game_id == "MI1CD":
-        room_root_paths = [os.path.join("MONKEY1", "LECF")]
+        room_root_paths = [Path("MONKEY1", "LECF")]
     elif game_id == "MI2":
-        room_root_paths = [os.path.join("MONKEY2", "LECF")]
+        room_root_paths = [Path("MONKEY2", "LECF")]
     elif game_id == "MI1EGA" or game_id == "MI1VGA":
         room_root_paths = [
-            os.path.join("DISK01", "LE"),
-            os.path.join("DISK02", "LE"),
-            os.path.join("DISK03", "LE"),
-            os.path.join("DISK04", "LE")
+            Path("DISK01", "LE"),
+            Path("DISK02", "LE"),
+            Path("DISK03", "LE"),
+            Path("DISK04", "LE")
         ]
     
-    room_names_file_path = os.path.join(decomp_path, "roomnames.xml")
+    room_names_file_path = Path(decomp_path, "roomnames.xml")
     room_names_file = open(room_names_file_path, "r")
     room_names_xml = room_names_file.read()
     room_names_file.close()
 
-    room_names = re.findall("<name>(.*)</name>", room_names_xml.replace("-", "_"))
+    room_names = re.findall("<name>(.*)</name>", room_names_xml)
     room_ids = re.findall("<id>(.*)</id>", room_names_xml)
 
     room_name_table = {}
@@ -273,16 +275,18 @@ def add_room_names(decomp_path, game_id):
         room_name_table[int(room_ids[i])] = room_names[i].replace("-", "_")
 
     for local_room_root_path in room_root_paths:
-        room_root_path = os.path.join(decomp_path, local_room_root_path)
+        room_root_path = Path(decomp_path, local_room_root_path)
 
-        if not os.path.isdir(room_root_path):
+        if not room_root_path.is_dir():
             continue
         
-        room_paths = [f.path for f in os.scandir(room_root_path) if f.is_dir()]
-        for room_path in room_paths:
-            room_num = int(room_path[-3:])
-            new_room_path = room_path + "_" + room_name_table[room_num]
+        for room_path in room_root_path.iterdir():
+            if not room_path.is_dir():
+                continue
             
+            room_num = int(room_path.name[-3:])
+            new_room_path = Path(room_path.parent, room_path.name + "_" + room_name_table[room_num])
+
             os.rename(room_path, new_room_path)
 
 
@@ -296,11 +300,19 @@ def decompile(game_path, decomp_path, game_id, flags):
 
     start_time = time.time()
 
+    game_path = Path(game_path).resolve()
+    decomp_path = Path(decomp_path).resolve()
+
     if not "skip_unpack" in flags:
-        os.system(f'python2 {scummpacker_py2_path} -g {game_id} -i "{game_path}" -o {decomp_path} -u')
+        if os.name == 'posix':
+            os.system(f'python2 {scummpacker_py2_path} -g {game_id} -i "{game_path}" -o {decomp_path} -u')
+        elif os.name == 'nt':
+            os.system(f'{scummpacker_exe_path} -g {game_id} -i "{game_path}" -o {decomp_path} -u')
+
         add_room_names(decomp_path, game_id)
 
-    file_types_to_decode = ["image", "zplane", "script"]
+    #file_types_to_decode = ["costume", "script", "image", "scale", "box", "palette", "zplane"]
+    file_types_to_decode = ["costume"]
 
     timestamp_manager = TimestampManager(decomp_path)
 
@@ -325,8 +337,11 @@ def build(decomp_path, game_path, game_id, flags):
     video_type = video_table[game_id]
 
     start_time = time.time()
+
+    decomp_path = Path(decomp_path).resolve()
+    game_path = Path(game_path).resolve()
     
-    file_types_to_encode = ["costume", "script", "image", "scale", "palette", "zplane"]
+    file_types_to_encode = ["costume", "script", "image", "scale", "box", "palette", "zplane"]
 
     timestamp_manager = TimestampManager(decomp_path)
     timestamp_manager.check_for_existing_timestamps()
@@ -338,7 +353,10 @@ def build(decomp_path, game_path, game_id, flags):
         print("Nothing to rebuild")
         return
     
-    os.system(f'python2 {scummpacker_py2_path} -g {game_id} -i "{decomp_path}" -o {game_path} -p')
+    if os.name == 'posix':
+        os.system(f'python2 {scummpacker_py2_path} -g {game_id} -i "{decomp_path}" -o {game_path} -p')
+    elif os.name == 'nt':
+        os.system(f'{scummpacker_exe_path} -g {game_id} -i "{decomp_path}" -o {game_path} -p')
 
     timestamp_manager.save_to_timestamp_file()
 

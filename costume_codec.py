@@ -21,7 +21,7 @@ def find_lowest_offset(offset_table):
     for i in range(len(offset_table)):
         offset = offset_table[i]
 
-        if offset == 2:
+        if offset <= 2:
             continue
         
         if lowest_offset == -1 or offset < lowest_offset:
@@ -149,8 +149,8 @@ class Pict:
         self.limb_number = limb_number
         self.frame_number = frame_number
 
-        if len(self.image_data) > 0:
-            self.decode_image(palette)
+        self.decode_image(palette)
+
     
     def decode_image(self, palette):
         p = 0
@@ -168,7 +168,7 @@ class Pict:
             color_shift = 3
             repeat_mask = 0x07
 
-        while x < self.width:
+        while x < self.width and p < len(self.image_data):
             byte = self.image_data[p]
             p += 1
 
@@ -189,6 +189,14 @@ class Pict:
 
                     if x == self.width:
                         break
+
+        while x < self.width:
+            self.image.putpixel((x, y), palette[0])
+            y += 1
+            if y == self.height:
+                y = 0
+                x += 1
+
 
     def encode(self, palette, allow_redirectable_picts):
         encoded_pict = []
@@ -640,8 +648,6 @@ class Costume:
         limb_count = len(self.limbs)
         offset_to_pict_index_map = {}
 
-        
-
         for i in range(limb_count):
             limb = self.limbs[i]
             frame_number = 0
@@ -897,8 +903,6 @@ def get_room_palette(encoded_costume_path, version):
 def decode(encoded_costume_path, version, timestamp_manager, video_type, room_palette=[]):
     print(f"Decoding {encoded_costume_path}")
 
-    encoded_costume_path = Path(encoded_costume_path).resolve()
-
     encoded_file = open(encoded_costume_path, 'rb')
     encoded_costume = encoded_file.read()
     encoded_file.close()
@@ -941,8 +945,6 @@ def find_matching_files(file_path):
 def encode(decoded_costume_path, version, timestamp_manager, video_type, room_palette=[]):
     print(f"Encoding {decoded_costume_path}")
 
-    decoded_costume_path = Path(decoded_costume_path).resolve()
-
     (json_file_path, spritesheet_file_path) = find_matching_files(decoded_costume_path)
 
     spritesheet = Image.open(spritesheet_file_path)
@@ -974,10 +976,10 @@ def encode(decoded_costume_path, version, timestamp_manager, video_type, room_pa
 
 if __name__ == "__main__":
     if sys.argv[1] == 'decode':
-        decode(sys.argv[2], sys.argv[3], [], sys.argv[4])
+        decode(Path(sys.argv[2]).resolve(), sys.argv[3], [], sys.argv[4])
     
     elif sys.argv[1] == 'encode':
-        encode(sys.argv[2], sys.argv[3], [], sys.argv[4])
+        encode(Path(sys.argv[2]).resolve(), sys.argv[3], [], sys.argv[4])
 
 
 

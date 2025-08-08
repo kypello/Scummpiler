@@ -1,0 +1,196 @@
+ScummPacker v3
+==============
+Laurence Dougal Myers <jestarjokin@jestarjokin.net>
+Doc v1.1, August 2014
+
+Introduction
+------------
+ScummPacker is a tool to unpack and re-pack the game resources used in Lucsarts adventure games.
+
+Lucasarts games are usually identified by the engine version. The engine is usually referred to as SCUMM (Script Creation Utility for Maniac Mansion). It has support for many different LucasArts games (SCUMM version 3ish to 6).
+
+ScummPacker has the capability to pack game resources for use within a certain game, or to target a generic SCUMM version; you could theoretically pack entirely new game resources, creating a new game. However, ScummPacker's primary use is for modifying existing game reources. If you're looking to make a new game, I suggest investigating either ScummC, ScummGen, or Adventure Game Studio. 
+
+Some resources can be intelligently decoded; most header information is exported to XML files, and sound files like VOCs and MIDIs are unwrapped from their containing blocks.
+
+Usage
+-----
+To unpack a game, you must specify an input file and an output directory and a game to target.
+
+--------------------------------------
+scummpacker -g MI2 -i D:\temp\original -o D:\temp\unpacked -u
+--------------------------------------
+
+To pack a game, you must specify an input directory and an output file, AND either the game, or the SCUMM version to target.
+
+--------------------------------------
+scummpacker -g MI2 -i D:\temp\unpacked -o D:\temp\packed -p
+--------------------------------------
+
+Here are the options useable in ScummPacker:
+--------------------------------------
+ --version
+  Display the version of ScummPacker
+ -h, --help 
+  Print out options help
+ -v SCUMM-VERSION, --scumm-version=SCUMM-VERSION
+  Specify the SCUMM version to target. Possible options are: 3, 3fm, 4, 5, 6
+ -g GAME, --game=GAME
+  Specify the game to target. Possible options are: DOTT, FOA, INDY3VGA, LOOMCD, MI1CD, MI1CDalt, MI1EGA, MI1VGA, MI2, SAM, SAMalt, ZAKFM.
+ -i INPUT_FILE_NAME, --input-file-name=INPUT_FILE_NAME
+  Specify an input path.
+ -o OUTPUT_FILE_NAME, --output-file-name=OUTPUT_FILE_NAME
+  Specify an output path.
+ -u, --unpack
+  Unpack resources.
+ -p, --pack
+  Pack resources.
+--------------------------------------
+
+Advanced Usage
+--------------
+Here are a few oddities that you might need to know.
+
+Block Orders
+~~~~~~~~~~~~
+Sometimes, blocks within the game resources are not in sorted order. For instance, if a room contains objects with IDs of 146, 147, and 148, the object image blocks may be in order 148, 146, 147, and the object code blocks may be in order 147, 148, 146! 
+
+To support this odd ordering, each directory could contain an XML file called "order.xml". This file determines the orders for certain block types. If this file is absent, the blocks will be packed in sorted order. If a block does not have an entry in "order.xml", it will be appended after all other entries in "order.xml". You can safely delete any "order.xml" file; it is only required if you wish the packed resources to be near-identical to the original resources.
+
+Index File Padding
+~~~~~~~~~~~~~~~~~~
+The .000 resource files contain indexes of resource blocks in the .001 resource file. However, some games pad the number of entries in the indexes beyond the number of resources.
+
+ScummPacker will replicate this padding. If a SCUMM version is specified but no game is specified, ScummPacker will select a default game based on the SCUMM version.
+
+Adding more resources beyond the padding limit may work; then again, it may not.
+
+ Default games for SCUMM versions:
+ - SCUMM v3 = Indiana Jones and the Holy Grail (256-colour version)
+ - SCUMM v3fm = Zak McKracken and the Alien Mindenders (FM-Towns version)
+ - SCUMM v4 = Loom CD
+ - SCUMM v5 = Monkey Island 2 - LeChuck's Revenge
+ - SCUMM v6 = Sam and Max Hit The Road
+
+Index Files and Resource Numbering
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Specific resource IDs are normally stored in the .000 resource file, which stores indexes of resource blocks as offsets within the .001 file. While unpacking, these IDs are encoded in filenames, e.g. costume 139 might be called 'COST_139.dmp'. These IDs will be used when repacking the files.
+
+Some game resource files could contain unused resource blocks; these blocks do not contain an entry in the index file. They will be extracted with a name comprising of the resource type, "unk", and a number (incrementing for each unknown block of that resource type), e.g. "SOUN_unk_001". When packing, these files will be ignored, unless you specifically rename them to match the format of indexed resources, e.g. "SOUN_049".
+
+Some index files contain extra information that cannot be automatically generated. These will be extracted as XML files.
+
+ SCUMM v5:
+ - dobj.xml = directory of objects and class data. The object information is mostly dummy data, it's the class data that's important. NOTE: objects MUST be in sequential order, and there can be NO gaps in the object numbering.
+ - maxs.xml = maximum values, basically configuration options for the SCUMM engine.
+ - roomnames.xml = human-readable names for the rooms in the game. Each name is limited to 9 characters. Seem to be only for developer's use.
+
+ SCUMM v6:
+ - aary.xml = array setup
+ - the rest same as v5
+ 
+MIDI Files
+~~~~~~~~~~
+Generally, MIDI files are stored in the game resources with the same header information, but there are some exceptions. ScummPacker will normally use the default header information, but if the header is different, the following will occur:
+
+1) While unpacking, if the header is unusual, it will be dumped as a file with the extension '.mdhd'
+
+2) While packing, if there is a file ending in the extension '.mdhd', this file is used for the MIDI file being read in. For instance, if there is a file "ROL.mid" (representing music for the Roland MT-32), and another file called "ROL.mdhd", the non-standard header contained in the ".mdhd" file will be read.
+
+Object Class Data
+~~~~~~~~~~~~~~~~~
+The index files (.000) contain metadata for the objects in the game. Unlike the other entries in the .000 file, this data cannot be generated during packing. So, during unpacking, a new file called "dobj.xml" is created. This stores three values for each object: the owner (or parent), the state, and the class data. 
+
+The class data can be one of the following values:
+
+ SCUMM v3/4
+ - No Class = 0
+ - Y Flip = 18
+ - X Flip = 19
+ - Never Clip = 20
+ - Always Clip = 21
+ - Ignore Boxes = 22
+ - Player = 23	// Actor is controlled by the player
+ - Untouchable = 24
+ 
+ SCUMM V5+
+ - No class = 0
+ - Never Clip = 20
+ - Always Clip = 21
+ - Ignore Boxes = 22
+ - Y Flip = 29
+ - X Flip = 30
+ - Player = 31	// Actor is controlled by the player
+ - Untouchable = 32
+
+SCUMM Version and Games
+~~~~~~~~~~~~~~~~~~~~~~~
+
+ SCUMM v3 earlier? (unsupported)
+ - Maniac Mansion
+ - Zak McKracken and the Alien Mindbenders
+
+ SCUMM v3 later? (somewhat supported)
+ - Indiana Jones and the Last Crusade (EGA) (not supported)
+ - Indiana Jones and the Last Crusade (VGA)
+ - Loom (not supported)
+ - Zak McKracken and the Alien Mindbenders (FM-TOWNS) 
+
+ SCUMM v4
+ - Loom (CD)
+ - Monkey Island 1 (EGA)
+ - Monkey Island 1 (VGA)
+
+ SCUMM v5
+ - Indiana Jones and the Fate of Atlantis
+ - Monkey Island 1 (CD)
+ - Monkey Island 2
+
+ SCUMM v6
+ - Day of the Tentacle
+ - Sam and Max Hit the Road
+ 
+ SCUMM v7 (unsupported)
+ - The Dig
+ - Full Throttle
+
+XML Files
+~~~~~~~~~
+Some game resources can be unpacked to XML files, such as object header data. For any text values that fall out of the ASCII range of characters, or cannot otherwise be easily represented as-is, the affected character will be escaped of "\x", followed by the byte value, e.g. "\x18".
+ 
+More Information
+----------------
+Further technical information on the SCUMM resource formats can be found on the ScummVM wiki, at <http://wiki.scummvm.org/index.php/SCUMM/Technical_Reference>.
+ 
+Future Tasks
+------------
+Support for other versions of SCUMM (V3 old, V2, V7).
+
+Integrate with descumm to decompile scripts (once we can be sure that descumm's output is always correct).
+
+Decoding and encoding of images (room and objects). Integrate with SCUMM Image Encoder?
+
+Decoding and encoding of costumes. Probably requires intelligent handling of palettes.
+
+Support
+-------
+This program and its source code is available at <http://www.jestarjokin.net>.
+
+The source code repository is available at BitBucket: <https://bitbucket.org/jestar_jokin/scummpacker>.
+
+Any issues can be raised as tickets on BitBucket: <https://bitbucket.org/jestar_jokin/scummpacker/issues>.
+
+Any enquiries can be sent directly to Laurence at <jestarjokin@jestarjokin.net>.
+
+License
+-------
+This program is license under the conditions of the MIT license: <http://opensource.org/licenses/MIT>
+
+ifdef::backend-docbook[]
+Index
+-----
+////////////////////////////////////////////////////////////////
+The index is normally left completely empty, it's contents being
+generated automatically by the DocBook toolchain.
+////////////////////////////////////////////////////////////////
+endif::backend-docbook[]

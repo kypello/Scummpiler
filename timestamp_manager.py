@@ -13,7 +13,7 @@ class TimestampManager:
     changes_found = False
 
     def __init__(self, decomp_root_path):
-        self.decomp_root_path = Path(decomp_root_path).resolve()
+        self.decomp_root_path = decomp_root_path
         self.timestamp_file_path = Path(self.decomp_root_path, "timestamps.json")
         self.changes_found = False
 
@@ -24,7 +24,7 @@ class TimestampManager:
     def find_most_recent_timestamp_in_folder(self, folder_path):
         most_recent_timestamp = 0
         for file_path in folder_path.iterdir():
-            file_timestamp = os.path.getmtime(file_path)
+            file_timestamp = file_path.stat().st_mtime
 
             if file_timestamp > most_recent_timestamp:
                 most_recent_timestamp = file_timestamp
@@ -35,11 +35,9 @@ class TimestampManager:
         if path.is_dir():
             return self.find_most_recent_timestamp_in_folder(path)
         else:
-            return os.path.getmtime(path)
+            return path.stat().st_mtime
 
     def add_timestamp(self, file_path):
-        file_path = Path(file_path).resolve()
-
         normalized_file_path = self.normalize_path(file_path)
 
         current_timestamp = self.get_timestamp(file_path)
@@ -48,8 +46,6 @@ class TimestampManager:
         self.changes_found = True
 
     def check_timestamp(self, file_path):
-        file_path = Path(file_path).resolve()
-
         normalized_file_path = self.normalize_path(file_path)
 
         if not str(normalized_file_path) in self.timestamp_table:
@@ -61,8 +57,6 @@ class TimestampManager:
         return current_timestamp > logged_timestamp
 
     def touch_timestamp(self, file_path):
-        file_path = Path(file_path).resolve()
-
         if self.check_timestamp(file_path):
             self.add_timestamp(file_path)
 

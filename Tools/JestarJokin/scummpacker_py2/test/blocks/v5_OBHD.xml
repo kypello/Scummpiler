@@ -1,0 +1,25 @@
+<object>
+<id>1001</id>
+<name>Test Object</name>
+<image>
+    <x>1</x>
+    <y>2</y>
+    <width>3</width>
+    <height>4</height>
+    <flags>0x5</flags>
+    <unknown>0x6</unknown>
+    <num_images>7</num_images>
+    <num_zplanes>8</num_zplanes>
+</image>
+<code>
+    <x>1</x>
+    <y>2</y>
+    <width>3</width>
+    <height>4</height>
+    <flags>0x5</flags>
+    <parent>6</parent>
+    <walk_x>7</walk_x>
+    <walk_y>8</walk_y>
+    <actor_dir>9</actor_dir>
+</code>
+</object>

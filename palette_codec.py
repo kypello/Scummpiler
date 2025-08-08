@@ -1,5 +1,6 @@
 import os, sys, timestamp_manager
 from PIL import Image
+from pathlib import Path
 
 def save_to_png(palette, png_path):
     palette_image = Image.new(mode="RGB", size=(16,16))
@@ -34,7 +35,7 @@ def decode(encoded_file_path, version, timestamp_manager, save_to_file=True):
         p += 3
     
     if save_to_file:
-        decoded_file_path = encoded_file_path.replace(".dmp", ".png")
+        decoded_file_path = Path(encoded_file_path.parent, encoded_file_path.name.replace(".dmp", ".png"))
         save_to_png(palette, decoded_file_path)
 
         if timestamp_manager != []:
@@ -78,7 +79,7 @@ def encode(png_file_path, version, timestamp_manager, save_to_file=True):
         encoded_data.append(color[1])
         encoded_data.append(color[2])
 
-    encoded_file_path = png_file_path.replace(".png", ".dmp")
+    encoded_file_path = Path(png_file_path.parent, png_file_path.name.replace(".png", ".dmp"))
 
     encoded_file = open(encoded_file_path, 'wb')
     encoded_file.write(bytes(encoded_data))
@@ -91,7 +92,7 @@ def encode(png_file_path, version, timestamp_manager, save_to_file=True):
 
 if __name__ == "__main__":
     if sys.argv[1] == 'decode':
-        decode(sys.argv[2], sys.argv[3], [], True)
+        decode(Path(sys.argv[2]).resolve(), sys.argv[3], [], True)
 
     elif sys.argv[1] == 'encode':
-        encode(sys.argv[2], sys.argv[3], [])
+        encode(Path(sys.argv[2]).resolve(), sys.argv[3], [], True)

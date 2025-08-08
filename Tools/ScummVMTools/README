@@ -1,0 +1,466 @@
+ScummVM Tools README
+Last updated:    $Date$
+------------------------------------------------------------------------
+
+For more information on ScummVM, visit http://www.scummvm.org/.
+More on the tools can be found on our Wiki under
+  http://wiki.scummvm.org/index.php/User_Manual/Appendix:_Tools
+
+------------------------------------------------------------------------
+
+This is a collection of various tools that may be useful to use in conjunction
+with ScummVM. Please note that this module is not always in-sync with the latest
+STABLE version of ScummVM.
+
+This means that although a tool may support a feature, certain
+ScummVM versions may not. ScummVM 0.6.x does not support FLAC audio, for
+example.
+
+The extraction and compression tools can either be run from the command line or
+using the GUI wizard. All other tools are only available in command line.
+
+The command line executable for the compression and extraction tools can be
+invoked with the following syntax:
+scummvm-tools-cli [audio params] [params] [-o output] [extract|compress] <inputfile>
+
+This will auto-detect the tool to use depending on the input file(s). You can hint
+which tool to use by specifying if you want to extract or compress data.
+Alternatively you can give the name of the tool to use:
+scummvm-tools-cli --tool <tool name> [audio params] [params] [-o output] <inputfile>
+
+
+You can get a list of the supported tools using --list:
+scummvm-tools-cli --list
+
+
+[audio params] is used for compression tools to define which audio format to
+compress to. Use --mp3, --flac or --vorbis first to select a special format,
+default is MP3. Then you can give additional information such as the bit rate
+you want to use. Use --help to get the list of all the options you can use:
+scummvm-tools-cli --help <tool name>
+
+This will also list additional options that each tool might support.
+
+Use the -o or --output flag to specify the output file or directory. By default
+most tools will output to the directory out/ relative to the input file.
+
+Extraction Tools:
+        extract_agos
+                Extracts the packed files used in the Amiga and AtariST
+                versions of Elvira 1/2, Waxworks and Simon the Sorcerer 1.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool extract_agos <infile 1> ... <infile n>
+
+        extract_cge
+                Unpacks Soltys and Sfinx game data files.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool extract_cge [-o outputdir] <inputfile>
+
+        pack_cge
+               Packs Soltys and Sfinx game data files.
+
+               Example of usage:
+                ./scummvm-tools-cli --tool pack_cge [-o outputdir] <inputdir>
+
+        extract_cine
+                Unpacks Delphine's Cinematique engine's archive files.
+
+                Should work at least with Future Wars and Operation Stealth.
+                It seems to work also with Cruise for a Corpse. It accepts only
+                one input file. This may be either one of the archive file, in
+                which case only this file is unpacked, or the 'vol.cnf' file,
+                in which case all archive files listed in the 'vol.cnf' file are
+                unpacked.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool extract_cine [-o outputdir] <infile>
+
+        extract_cruise_pc
+                Unpack the E1, E4 and E5 files found in some versions of
+                Cruise for a Corpse. To extract the D1 to D5 files, use the
+                extract_cine tool instead.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool extract_cruise_pc [-o outputdir] <infile>
+
+        extract_cryo
+               Extracts Lost Eden archives.
+
+               Example of usage:
+                ./scummvm-tools-cli --tool extract_cryo [-o outputdir] <infile>
+
+        extract_gob_stk
+                Extracts data files from STK/ITK files from Coktel Vision
+                games.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool extract_gob_stk [-o outputdir] <infile>
+
+        extract_hdb
+               Extracts Hyperspace Delivery Boy! archives.
+
+               Example of usage:
+                ./scummvm-tools-cli --tool extract_hdb [-o outputdir] <hyperspace.msd>
+
+        extract_kyra
+                Unpacks .PAK files from Kyrandia games.
+
+                It is also able to extract the installer package files from
+                Hand of Fate DOS floppy version. You should make sure you got
+                all WESTWOOD.### files for that, since they are one big package
+                file splitted into several, so with -x you will extract *all*
+                files from the installer files.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool extract_kyra -x [-o outputdir] <infile>
+
+                NOTE: Takes some additional arguments, run extract_kyra --help
+                for details.
+
+        extract_loom_tg16
+                Extracts data files from the PC-Engine version of Loom.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool extract_loom_tg16 [-o outputdir] <infile>
+
+                NOTE: Use the dumpcd utility at http://www.zeograd.com/misc_download.php
+                to dump the code tracks on the CD.
+
+        extract_mm_apple
+                Extracts data files from the Apple II version of Maniac
+                Mansion.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool extract_mm_apple [-o outputdir] <disk1.dsk> <disk2.dsk>
+
+        extract_mm_c64
+                Extracts data files from the Commodore 64 version of Maniac
+                Mansion.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool extract_mm_c64 [-o outputdir] <disk1.d64> <disk2.d64>
+
+        extract_mm_nes
+                Extracts data files from the NES version of Maniac Mansion.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool extract_mm_nes [-o outputdir] <infile.PRG>
+
+                NOTE: Japanese version is _not_ supported.
+
+        extract_parallaction
+                Extracts the contents of archives used in Nippon Safes.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool extract_parallaction [--small] [-o outputdir] <infile>
+
+        extract_scumm_mac
+                Extracts Macintosh "single file" SCUMM games into their
+                component parts, for use with ScummVM.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool extract_scumm_mac [-o outputdir] <infile>
+
+                NOTE: This is required for ScummVM up to version 0.6.x; all
+                later versions directly support reading this file format.
+
+        extract_zak_c64
+                Extracts data files from the Commodore 64 version of Zak
+                McKracken.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool extract_zak_c64 [-o outputdir] <disk1.d64> <disk2.d64>
+
+Compression Tools:
+        compress_agos
+                Used to compress the Feeble Files or Simon the Sorcerer 1/2
+                voc/wav files to MP3, Vorbis or FLAC.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool compress_agos --vorbis -q 7 SIMON2.WAV
+
+                NOTE: Specify --mac for the mac version (obviously).
+                Default output is input with changed extension.
+
+        compress_gob
+                Compresses Gobliiins! data files.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool compress_gob [-o outputpath] -f <conf_file>
+
+                <conf file> is a .gob file generated by extract_gob_stk.
+                -f forces compression for all files.
+                The stick archive (STK/ITK/LTK) will be created in the directory
+                specified by the '-o' parameter.
+
+        compress_kyra
+                Used to compress The Legend of Kyrandia, The Legend of
+                Kyrandia: Hand of Fate, The Legend of Kyrandia: Malcolm's
+                Revenge and Lands of Lore: The Throne of Chaos audio files
+                with MP3, Vorbis or FLAC.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool compress_kyra <flags here> input/GEMCUT.VRM
+
+                You have to keep the file extension the tool will append
+                else it will NOT work. Use it as shown above, copy all speech
+                files to a directory and let the tool put the output file in
+                another directory.
+
+        compress_queen
+                Used to rebuild the datafile of Flight of the Amazon Queen,
+                and allow optional MP3, Vorbis or FLAC compression.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool compress_queen [mode params] [-o outputfile] queen.1
+
+                Default output file is "queen.1c"
+
+        compress_saga
+                Used to compress SAGA engine digital sound files to MP3, Vorbis
+                or FLAC.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool compress_saga [mode params] [-o outputfile] <infile>
+
+                Where <infile> is the sound file you wish to compress, without
+                the extension.
+                Default output file is input file with the extensions ".cmp"
+
+                For Inherit the Earth, the digital music (music.rsc), speech
+                (voices.rsc or "Inherit the Earth voices") and sound effects
+                (sounds.rsc) files can be compressed. For I have no Mouth, the
+                speech (voices*.res) files can be compressed.
+
+                The compressed files have the ".cmp" extension. Once compressed,
+                you only need the respective .cmp files.
+
+                Note: There is no compression support yet for the following
+                versions:
+                - The Mac CD Guild version of Inherit the Earth (uses MacBinary
+                  *.bin files).
+                - The unsupported early DOS demo of Inherit the Earth.
+
+        compress_sci
+                Used to compress Sierra resource.aud/.sfx and AUDIO001.002
+                audio files with MP3, Vorbis or FLAC. This tool is NOT
+                compatible with the newer SCI32 games yet.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool compress_sci [mode params] [-o outputfile] <infile>
+
+                The name of the output file is required. Use a temporary name,
+                and after the tool finishes compressing it, replace the original
+                uncompressed file with the compressed one. So, if for example
+                your original audio resource file is resource.aud, you can use
+                a temporary name like resource.tmp. Then, move the original
+                resource.aud file elsewhere and rename resource.tmp to
+                resource.aud.
+
+        compress_scumm_bun
+                Used to compress '.bun' music/voice files with MP3, Vorbis
+                or FLAC.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool compress_scumm_bun [mode params] [-o outputfile] <infile>
+
+                Default outputfile is inputfile with the extension ".bun".
+
+                Note: For "The Curse of Monkey Island", FLAC compression will
+                produce larger files than in the original game.
+
+        compress_scumm_san
+                Compresses '.san' smush animation files. It uses lossless
+                zlib for compressing FOBJ gfx chunks inside a san file.
+                It can also create a separate Ogg file with the audio track.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool compress_scumm_san [mode params] [-o outputfile] <infile>
+
+                Default output is inputfile with the extension ".san".
+
+                In order to use such compressed files, your ScummVM binary
+                must have been built with zlib support enabled (you can find
+                out whether that's the case by looking at the About dialog).
+                For the Ogg or MP3 compression feature, your ScummVM binary
+                naturally must have been built with Ogg or MP3 support enabled.
+
+                NOTE: For some '.san' files there is a corresponding '.flu'
+                file, which contains offsets into the '.san' file. Hence, the
+                compress_scumm_san has to modify the '.flu' file. This happens
+                automatically, if the '.san' and '.flu' files are in the
+                same directory (which is normally the case). If you want to
+                move the '.san' files before compressing them, make sure to
+                move the '.flu' files, too!
+
+        compress_scumm_sou
+                Used to compress .sou files to .so3 (MP3), .sog (Vorbis),
+                or .sof (FLAC).
+
+                Example of usage:
+                ./scummvm-tools-cli --tool compress_scumm_sou [mode params] [-o outpufile] <infile>
+                ./scummvm-tools-cli --mp3 MONSTER.SOU
+
+                Default output file is inputfile with changed extensions,
+                depending on the compression method used.
+
+        compress_sword1
+                Used to compress Broken Sword 1's music and speech .clu files
+                to .cl3 (MP3), .clg (Vorbis) or .clf (FLAC).
+
+                Example of usage:
+                ./scummvm-tools-cli --tool compress_sword1 --vorbis -q 7 BS1/swordres.rif
+
+                NOTE: Only the PC and Mac versions are currently supported.
+                The PSX version is not supported by this tool.
+
+        compress_sword2
+                Used to compress Broken Sword 2's music and speech .clu
+                files to .cl3 (MP3), .clg (Vorbis) or .clf (FLAC).
+
+                Example of usage:
+                ./scummvm-tools-cli --tool compress_sword2 [params] <file>
+
+                NOTE: FLAC compression will produce larger files than the original!
+                This is because the original files already use lossy compression.
+
+        compress_tinsel
+                Used to compress tinsel .smp files.
+
+                The corresponding .idx file must be part of the command.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool compress_tinsel [mode_params] [-o outputfile] <infile.smp> <infile.idx>
+                ./scummvm-tools-cli --tool compress_tinsel --vorbis -q 9 ENGLISH.SMP ENGLISH.IDX
+
+        compress_touche
+                Used to compress and pack Touche speech files ('Vxxx' and
+                'OBJ') to MP3, Vorbis or FLAC to a single file named
+                TOUCHE.SO3 (MP3), TOUCHE.SOG (Vorbis) or TOUCHE.SOF (FLAC).
+
+                Once compressed, only TOUCHE.DAT and TOUCHE.SOx files are
+                required to play the game under ScummVM.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool compress_touche [mode params] [-o outputfile] <inputdir>
+
+                NOTE: Default outputfile is TOUCHE.* (depending on the compression method).
+                Files in the input folder should be uppercase.
+
+        compress_tucker
+                Used to compress sound and speech files from AUDIO/FX/MUSIC/SPEECH
+                directories to a single file named TUCKER.SO3 (MP3), TUCKER.SOG
+                (Vorbis) or TUCKER.SOF (FLAC).
+
+                Once compressed, the four directories are not required to play
+                the game under ScummVM anymore.
+
+                Example of usage:
+                ./scummvm-tools-cli --tool compress_tucker [mode params] [-o outputfile] <inputdir>
+
+                NOTE: Default outputfile is TUCKER.SOx (depending on the compression method).
+                Files in the input folder should be uppercase.
+
+Script Tools:
+        decine
+                Decompiles Delphine's Cinematique engine's scripts.
+                Should work at least with Future Wars and Operation Stealth.
+
+                Example of usage:
+                decine [type] [version] [filename]
+                type: -prc or -rel (Use -prc for *.prc-files, -rel for *.rel-files)
+                version: -v1 or -v2 (Use -v1 for Future Wars, -v2 for Operation Stealth)
+                filename: The name of the script file to decode.
+
+        degob
+                Decompiles TOT scripts used in Coktel Vision games.
+
+                Example of usage:
+                degob <version> <file.tot> [<file.ext>] [<commun.ext>]
+
+                "<version>" describes from which game the script file
+                was taken and is one of "Gob1", "Gob2", "Gob3", "Ween",
+                "Bargon", "Fascination, "Lost", "Woodruff", "Dynasty"
+                and "Urban".
+
+                If the script file calls loadMult(), the script file's
+                EXT file must be supplied on the command line as well;
+                some script files also require a commun.ext. degob throws
+                an error to let you know if any of the two should be the
+                case.
+
+        dekyra
+                Basic script disassembler for Legend of Kyrandia games.
+
+        descumm
+                Decompiles SCUMM scripts.
+
+        desword2
+                Disassembles Broken Sword II scripts.
+
+
+Encoder Tools:
+        encode_dxa [params] <file>
+
+                Creates DXA file out of extracted Smacker video.
+
+                To extract a video use RAD Game Tools and perform 2 passes
+                on it. For example, if your video is called 'intro.smk':
+
+                1. Extract the video to PNG, 256 colors (choose PNG format
+                and tick the checkbox). It will create a bunch of files named
+                'introXXX.png', where XXX is frame number. Make sure you have
+                extracted 256 colors PNGs, otherwise encode_dxa will complain.
+
+                2. Extract the audio to WAV format, you will get an
+                'intro.wav' file.
+
+                3. Put files 'intro.smk', 'intro.wav' and 'intro*.png' into a
+                single directory.
+
+                4. Run `encode_dxa intro.smk` in that directory.
+
+                5. You will get an intro.dxa file and intro.flac/mp3/ogg file
+                in result.
+
+                Additionally you may use the batch processing mode of SMK files
+                in RAD Game Tools. Just select more than one file and push the
+                'Convert' button. It will ask you either you want them
+                processed in batch mode and will do this for you. All buttons
+                and conversion options work the same.
+
+        convert_dxa.bat
+        convert_dxa_one.bat
+
+                To ease your life we also provide batch files to autoconvert
+                all files. It should work with any game version.
+
+                1. Copy *.smk files from all CDs to some directory.
+
+                2. Edit paths in convert_dxa.bat file.
+
+                3. Run the batch. If you set everything correct, it will be
+                an almost unattended conversion.
+                Just for several files which don't have audio, RAD Game Tools
+                converter will ask you to press OK.
+
+        convert_dxa.sh
+
+                Same as the above convert_dxa.bat, just for *nix-based systems.
+                It uses Wine to run RAD Game Tools.
+
+Other Tools:
+        pack_bladerunner
+                Used to combine Blade Runner CDFRAMES.DAT files into HDFRAMES.DAT.
+
+                1. Copy CDFRAMES.DAT file from CD1 to some directory.
+
+                2. Copy CDFRAMES.DAT files from CDs 2-4 to the same directory
+                but name them CDFRAMES2.DAT - CDFRAMES4.DAT respectively.
+
+                3. Run the tool:
+                  ./scummvm-tools-cli --tool pack_bladerunner [-o outputfile] <inputdir>/CDFRAMES.DAT
+
+                4. Copy the resulting HDFRAMES.DAT file to the game directory.

@@ -1,5 +1,6 @@
 import sys, os, json, timestamp_manager
 from binary_functions import *
+from pathlib import Path
 
 def decode_scale_data(data):
     table = []
@@ -44,7 +45,7 @@ def decode(scale_data_file_path, version, timestamp_manager):
     elif version == '5':
         scale_table = decode_scale_data(scale_data[8:])
 
-    scale_table_file_path = scale_data_file_path.replace(".dmp", ".json")
+    scale_table_file_path = Path(scale_data_file_path.parent, scale_data_file_path.name.replace(".dmp", ".json"))
     scale_table_file = open(scale_table_file_path, 'w')
     scale_table_file.write(json.dumps(scale_table, indent=4))
     scale_table_file.close()
@@ -70,7 +71,7 @@ def encode(scale_table_file_path, version, timestamp_manager):
     
     scale_data = header + scale_data
 
-    scale_data_file_path = scale_table_file_path.replace(".json", ".dmp")
+    scale_data_file_path = Path(scale_table_file_path.parent, scale_table_file_path.name.replace(".json", ".dmp"))
     scale_data_file = open(scale_data_file_path, 'wb')
     scale_data_file.write(bytes(scale_data))
     scale_data_file.close()
@@ -80,10 +81,10 @@ def encode(scale_table_file_path, version, timestamp_manager):
 
 if __name__ == "__main__":
     if sys.argv[1] == 'decode':
-        decode(sys.argv[2], sys.argv[3], [])
+        decode(Path(sys.argv[2]).resolve(), sys.argv[3], [])
 
     elif sys.argv[1] == 'encode':
-        encode(sys.argv[2], sys.argv[3], [])
+        encode(Path(sys.argv[2]).resolve(), sys.argv[3], [])
 
 
 

@@ -1,0 +1,2346 @@
+Scummbler v2
+============
+Laurence Dougal Myers <jestarjokin@jestarjokin.net>
+Doc v2.4, July 2011
+
+Introduction
+------------
+Scummbler is a program that compiles text scripts into a binary format suitable for use in Lucasarts games (which uses a bytecode scripting language called Script Creation Utility for Maniac Mansion, or SCUMM). Currently, it only supports creating scripts for V5 of the SCUMM scripting engine.
+
+Scummbler has been designed to parse text files from http://www.scummvm.org[ScummVM]'s descumm tool. This allows you to easily convert back and forth between bytecode and human-readable code.
+
+Because Scummbly is quite low level (it is merely a human readable version of the SCUMM bytecode), I don't think it's appropriate for creating any new games; instead, it is more suited for modifying the scripts of existing games to extend their functionality. If you're looking to make your own SCUMM-based adventure game, you should investigate http://alban.dotsec.net/7.html[ScummC] and http://code.google.com/p/scummgen/[ScummGen].
+
+Before you dive into Scummbly, it might be wise to check out the technical reference for the SCUMM engine on the ScummVM wiki. Also, Alban Bedel, the author of ScummC, has some great info on http://alban.dotsec.net/7.html[his website], although it focuses on SCUMM V6.
+
+For the purposes of this document, I will refer to the textual script as Scummbly, and the bytecode script as SCUMM. Any oddities in the textual script that are artifacts of descumm's output, I will refer to as descumm or legacy descumm (see A Note On descumm).
+
+Usage
+-----
+Run Scummbler from the command line, passing the version of the SCUMM engine you want to target, and one or more filenames of the scripts you want to parse as the arguments (or a directory, which will attempt to parse all *.txt files).
+
+--------------------------------------
+scummbler -V5 campfire_intro.txt
+--------------------------------------
+
+The resulting file(s) will be named as the input file(s), with a new suffix based on the type of script (which is defined as a compiler directive within the script, explained later). For instance, 'campfire_intro.txt' as a local script will be called 'campfire_intro.LSCR'.
+
+Scummbler also comes with a helper script, `verb_helper.py`, to assist in extracting metadata from existing SCUMM v3 and 4 object scripts. Pass it the original binary script as an argument.
+
+--------------------------------------
+verb_helper OC_man_of_low_moral_fiber.srb
+--------------------------------------
+
+It will output some Scummbly code to standard output; you will probably want to redirect the output to a text file. You will need to add this line into your text script.
+
+--------------------------------------
+verb_helper OC_man_of_low_moral_fiber.srb >> out.txt
+--------------------------------------
+
+There are some command-line options, most are self explanatory.
+
+Error reporting is very poor in Scummbler, and will usually not point to the part of the Scummbly script that caused the error, especially if the syntax error is contained within an `if/else` block; this is mostly because of the backtracking behaviour of the parser. If anyone familiar with PyParsing or any similar parsing package can offer advice on how to fix this, please contact me!
+
+About This Document
+-------------------
+This document is designed as a reference for the basic grammar of Scummbly. Here are some of the conventions used:
+
+ - Functions can accept various arguments. The arguments may be typed as one of the following (the details are explained later):
+ -- Variable   = a variable
+ -- Byte       = a byte value (0 to 255, or -128 to 127)
+ -- Word       = a word value (-32,768 to 32,767)
+ -- VarOrByte  = a variable or byte
+ -- VarOrWord  = a variable or word
+ -- String     = text enclosed in double quote marks
+ -- List       = multiple values enclosed in square brackets, seperated by commas
+ - Where instructions or language features are specific only to some versions of the SCUMM engine, they are followed by a list of numbers or identifiers, surrounded by angle brackets and seperated by commas (e.g. `<4, 5>` means the instruction is only supported in versions 4 and 5 of the SCUMM engine).
+
+A Note On descumm
+-----------------
+descumm is a tool created by the developers of ScummVM. It can be used to decompile binary SCUMM scripts into a human-readable format. However, descumm did not originally intend for these human-readable scripts to be useful for re-compiling into a binary format. As such, there were many errors in the output text, such as inconsistent useage of semi-colons at the end of instructions, extra or missing parentheses, some instructions did not output enough information, unusual method of outputting escape codes in text strings etc.
+
+Most of these errors have now been fixed, although as of the time of writing this (3rd November 2009), the fixes have not made their way into a full release of the ScummVM tools, so you will have to download an SVN daily build.
+
+Any of these quirks that have now been fixed in descumm will be referred to as part of `legacy descumm`. Scummbler has a command-line option to enable parsing of legacy descumm scripts, if required.
+
+I have also noticed that descumm does trip up on some scripts, such as `print` instructions that contain a sequence of escape characters with \x00; sometimes it gets it right, sometimes it thinks the \x00 is a null-terminating character, marking the end of the string. I have also seen scripts that get jumps within if/else blocks output incorrectly; if you are worried about this, descumm has an option to suppress if/else blocks, which should avoid this issue.
+
+Basic Syntax
+------------
+This section describes the base elements that make up Scummbly.
+
+Constants
+~~~~~~~~~
+Constants can be either bytes or words in size; this will depend on the instruction you are using.
+
+You can also define aliases for variables or constants (see Compiler Directives).
+
+Variables
+~~~~~~~~~
+Variables are specified by their type and an index. They can be global word variables, local script variables, or bit variables.
+
+--------------------------------------
+ Var[26]
+ Local[4]
+ Bit[105]
+--------------------------------------
+
+There is a limit to the number of each variable type that can be used; this is defined within the game's index file (*.000).
+
+Variables can have indirect pointers:
+
+--------------------------------------
+ Var[26 + 8]
+ Var[26 + Var[28]]
+--------------------------------------
+
+The first example has an offset of `8`, the second example has an offset of whatever the contents of `Var[28]` are. If `Var[28]` contains the value `8`, it will reference the same variable that `Var[26 + 8]` would (i.e. `Var[34]`).
+
+There are a number of global variables that are reserved for use by the SPUTM engine; these can be found in 'scummbler_vars.py', and are also listed in Appendix A. You can substitute any of these names for the appropraite variable.
+
+--------------------------------------
+ /* These two instructions are functionally the same */
+ VAR_MOUSE_X -= 3
+ Var[44] -= 3
+--------------------------------------
+ 
+Note that variable names are case sensitive; unnamed variables must begin with a capital, and named variables must be in uppercase.
+
+You can also define aliases for variables or constants (see Compiler Directives).
+
+Argument Lists
+~~~~~~~~~~~~~~
+Generally, when a function requires a large number of values, it will take them in a list. This list is a series of values (constants or variables, sometimes both and sometimes only one type depending on the instruction), surrounded by square brackets.
+
+--------------------------------------
+ chainScript(3, [Local[0], Local[1]]);
+--------------------------------------
+
+Strings
+~~~~~~~
+String literals are surrounded by double quote marks.
+
+--------------------------------------
+ setObjectName(124,"bucket o' mud")
+--------------------------------------
+ 
+Strings may contain the the karat character `^`. This can have two meanings:
+ - if followed by a series of digits, the digits are interpreted as a number and treated as an escape character/raw byte. This is only applicable if "legacy" descumm parsing mode is enabled.
+ - otherwise, the SPUTM engine uses the `^` character to represent three ellipses `...` .
+ 
+To embed non-standard ASCII characters, you can specify a hex code precedeed by a backslash and "x", like so:
+
+--------------------------------------
+ printEgo([Text("No.\xFF\x03Bigger than that.")]);
+--------------------------------------
+
+To include a backslash or double quote marks in the string, add a backslash before it:
+
+--------------------------------------
+ printEgo([Text("What's a \"bunyip\"?")]);
+ printEgo([Text("Backslash \\ forward slash / ")]);
+--------------------------------------
+
+There are also a number of in-line string functions you can include in the string. These are called before, between, or after quoted pieces of text (or even in place of any quoted text), and are concatenated with other quoted text or string functions. Examples:
+
+--------------------------------------
+ printEgo([Text(sound(0x20, 0x30) + "No." + wait() + newline() + "Bigger than that." + keepText())]);
+--------------------------------------
+
+Below are listed the supported string functions.
+
+String Functions
+^^^^^^^^^^^^^^^^
+--------------------------------------
+ newline()
+ keepText()
+ wait()
+ getInt(Var intVar)
+ getVerb(Var verbVar)
+ getName(Var nameVar)
+ getString(Var stringVar)
+ startAnim(Word animNum)
+ sound(DWord offset, DWord vctl_size)
+ setColor(Word colorNum)
+ setFont(Word fontNum)
+--------------------------------------
+
+
+Instructions
+~~~~~~~~~~~~
+Each line in Scummbly is considered its own instruction, with the exception of `if` blocks (discussed later).  Instructions can be categorised into four basic types:
+
+1) Inline operations - basic mathematical operations that act on a single variable.
+
+--------------------------------------
+ Local[1] += 7
+--------------------------------------
+ 
+2) Expression mode - complex, chained mathematical operations that can also call other functions.
+
+--------------------------------------
+ Exprmode Local[1] = ((124 + Var[309) * 6)
+--------------------------------------
+ 
+3) Boolean expressions - functions used in `if` statements and `unless` instructions.
+
+--------------------------------------
+ if (Local[2] > Var[308]) {
+--------------------------------------
+ 
+4) Functions - performs complex actions
+
+--------------------------------------
+ walkActorTo(Var[1],179,44)
+--------------------------------------
+
+Arguments for functions are seperated by commas.
+  
+There are also complex functions that can have sub-instructions. Sometimes these sub-instructions are part of the grammar for the function, other times they stand as a seperate function.
+
+Comments
+~~~~~~~~
+Scummbly uses C-style comments.
+
+--------------------------------------
+ /* Hi! I'm a C-style comment! I'll make rude remarks behind your back so the ladies all laugh when you walk by! */
+--------------------------------------
+
+Labels
+~~~~~~
+Labels are used to define targets for any jumping instructions (`unless` or `goto` instructions). They appear at the start of a line and are contained within square brackets.
+
+--------------------------------------
+ [start] Local[1]++;
+         goto start;
+--------------------------------------  
+
+Instead of labels as such, descumm outputs the hex offset of each instruction in the script. Scummbler will interpret these offsets as labels.
+
+You cannot have two labels with the same name.
+
+Other Decorations
+~~~~~~~~~~~~~~~~~
+To maintain compatibility with descumm, Scummbly will successfully parse but ignore a few extra things. These are:
+
+ - the opcode (in parentheses between any label and the instruction)*
+ - a trailing semi-colon (descumm is inconsistent in its usage).
+ 
+--------------------------------------
+ [0030] (1A)     Var[107] = 0;
+--------------------------------------
+
+*Note that the opcode is required for the `startScript` function in legacy descumm, see its entry for more information.
+
+Control Flow
+~~~~~~~~~~~~
+Scummbly supports `if/else` branches, and `do/while`, `while` and C-style `for` loops.
+
+--------------------------------------
+ if (Var[108] < 12) {
+  ...
+ } else if (Var[108] > 12) {
+  ...
+ } else {
+  ...
+ }
+--------------------------------------
+ 
+Behind the scenes, these blocks are just nice looking 'unless/goto' statements; you can have an empty block which acts as a jump when a certain condition is met. You can get some funny output from descumm, when it thinks a conditional jump is an 'if' block. Also, scripts originally written in SCUMM have dummy jumps at the end of every block in an 'else if' construct; descumm comments them out, so if you take a script from SCUMM -> descumm -> Scummbler, you will not get an output script that is identical to the original SCUMM script.
+
+--------------------------------------
+do {
+ ...
+} while (Var[108] < 12)
+--------------------------------------
+
+--------------------------------------
+while (Var[108] < 12) {
+ ...
+}
+--------------------------------------
+
+--------------------------------------
+for (Var[108] = 0; Var[108] < 12; Var[108]++) {
+ ...
+}
+--------------------------------------
+
+In `for` loops, the initialiser and counting expressions are optional, and can be any Inline Operation. The loop test expression can be any Boolean Expression.
+
+Note that there is no `break` or `continue` statement; you can get the same functionality using `goto`.
+
+Ending a Script
+~~~~~~~~~~~~~~~
+The last instruction in a script must always be the `stopObjectCode` instruction. You can optionally include the text `END` (this is to maintain compatibility with descumm).
+
+--------------------------------------
+ ...
+ [0042] (A0) stopObjectCode()
+ END
+--------------------------------------
+
+Note that object/verb scripts have multiple entry and exit points, and so there may be more than one call to `stopObjectCode`.
+
+Compiler Directives
+~~~~~~~~~~~~~~~~~~~
+These directive must appear at the start of the script, before any instructions.
+
+Aliases for Constants and Variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+You can define aliases for constants and variables using the '#define' keyword. The names can be composed of any alphanumeric character and underscores.
+
+--------------------------------------
+#define Fink 12
+#define HAS_BEARD Bit[149]
+print(Fink, Text("A beard?!"));
+HAS_BEARD = 1
+--------------------------------------
+
+Note that type information is lost when using '#define', so you can easily end up using a word in an instruction that only accepts a byte!
+
+Event Table
+^^^^^^^^^^^
+Object/verb scripts require an event table. This defines multiple entry points into the script, based on the `verb` (user interaction, such as "Look at" or "Push"). Here is an example table:
+
+--------------------------------------
+Events:
+   9 - 0045
+   D - 0041
+  5A - 007F
+  FF - 0085
+--------------------------------------
+
+This table maps verb `9` to the label `0045`, verb `D` to label `0041`, etc.
+
+Normally, you would have a `stopObjectCode` instruction at the end of each verb action. For instance, given the above event table, verb `D` begins at label `0041` and ends before label `0045`, so the script might look like this:
+
+--------------------------------------
+Events:
+   9 - 0045
+   D - 0041
+  5A - 007F
+  FF - 0085
+/* Actions for verb "D" */
+[0041] (0A) startScript(216,[])
+[0044] (00) stopObjectCode()
+/* Actions for verb "9" */
+[0045] (40) cutscene([2])
+...
+[0085] (00) stopObjectCode()
+END
+--------------------------------------
+
+If you specify a script number and a script type compiler directive that is anything except `verb` or `object`, your significant other will leave you for a roaming band of gypsies.
+
+Object Data <3, 4>
+^^^^^^^^^^^^^^^^^^
+Object scripts in SCUMM 3 and 4 also store some object metadata. 
+--------------------------------------
+#object-data [datum1, datum2, ...]
+--------------------------------------
+
+There are multiple entries required in the `object data` directive. All except `unknown` are compulsory.
+--------------------------------------
+ id	word
+ unknown	byte (if missing, defaults to 0x00)
+ x-pos	byte
+ y-pos	byte (max value of 127)
+ parent-state	0 or 1
+ width	byte
+ parent	byte
+ walk-x	word
+ walk-y	word
+ height	byte (min value of 8)
+ actor-dir	byte (max value of 7)
+ name	string
+--------------------------------------
+
+Here is an example of the object data for the "Men of Low Moral Fiber (pirates)" object in Monkey Island 1 CD.
+--------------------------------------
+ #object-data [id 460, unknown 0, x-pos 0, y-pos 10, parent-state 0, width 9, parent 0, walk-x 77, walk-y 126, height 64, actor-dir 0, name "Men of Low Moral Fiber (pirates)"]
+--------------------------------------
+
+`descumm` does not output any object metadata when decompiling existing scripts. To acquire this metadata, you can use the external script `verb_helper` included with Scummbler (see: `Usage`).
+
+Script Numbers
+^^^^^^^^^^^^^^
+You can specify a script number; if you do, the output file will be a considered a `local` script, and output with the appropriate header information.
+
+--------------------------------------
+ Script# 201
+ ...
+--------------------------------------
+
+If you specify a script number and a script type compiler directive that is anything except `local`, you will cause the universe to implode in on itself and everyone will be fairly annoyed, especially me, I mean, I just put a load of washing on this morning, and for what? Nothing! Pfah!
+
+Script Type
+^^^^^^^^^^^
+You can specify the type of script you want to compile. The default type is a `global` script.
+
+--------------------------------------
+#script-type local
+--------------------------------------
+
+Possible values:
+
+--------------------------------------
+global == script can be called from any room
+local  == script can only be called from the containing room
+entry  == room entry script (triggered when character enters a room)
+exit   == room exit script (triggered when character exits a room)
+verb   == defines multiple actions based on player interaction with an object
+object == same as above (convenient alias)
+--------------------------------------
+
+If you specify a `local` script, you must also include the `script number` directive. `verb` scripts must also include the `event table` directive, and for SCUMM 3 or 4 they must also include the `object data` directive.
+
+Scummbler will try to guess the type of script based on any other compiler directives present in the script. If a script number is defined, the script type is assumed to be `local`. If an event table or object metadata is present, the script type is assumed to be `verb`. If any directives are present that specify conflicting script types, all of your dead pets will rise from their graves and whine/meow/gurgle/hiss mercilessly at you for the rest of eternity.
+
+Inline Operations
+-----------------
+All inline operations act on a target variable and an argument (either a variable or a word constant).
+
+--------------------------------------
+ Local[1] = 7 /* move */
+ Local[1] += 7 /* addition */
+ Local[1] -= 7 /* subtraction */
+ Local[1] *= 7 /* multiplication */
+ Local[1] /= 7 /* division */
+ Local[1]++ /* increment */
+ Local[1]-- /* decrement */
+ Local[1] &= 7 /* logical AND */
+ Local[1] |= 7 /* logical OR */
+--------------------------------------
+ 
+Expression Mode
+---------------
+Expression mode is a way to chain mutliple operations together. You can perform any mathematical operations (excluding logical AND, logical OR, increment and decrement), and can also call any functions that return a value. Each operation and pair of values must be surrounded by parentheses.
+
+--------------------------------------
+ Exprmode Local[1] = (7 * 4);
+ Exprmode Var[100] = ((120 + Var[165]) - 1);
+--------------------------------------
+ 
+When including a function, it must be surrounded by angular brackets, and must move the returning value into `VAR_RESULT`.
+
+--------------------------------------
+ Exprmode Local[7] = ((<VAR_RESULT = getActorWidth(Local[2])> / 2) + 4);
+--------------------------------------
+
+Boolean Operations
+------------------
+These are specific instructions that set a flag in the SPUTM engine, indicating whether the tested condition is true or false. Most boolean operations must test a variable (you can't have statements like `if (1)...`).
+
+Zero Equality
+~~~~~~~~~~~~~
+You can test for zero equality or inequality by just having the variable name.
+
+--------------------------------------
+ if (Var[234]) {
+--------------------------------------
+
+--------------------------------------
+ if (!Var[234]) {
+--------------------------------------
+ 
+Comparisons
+~~~~~~~~~~~
+These are your standard mathematical comparisons.
+
+--------------------------------------
+ if (Var[234] == 84) {
+ if (Var[234] != 84) {
+ if (Var[234] < 84) {
+ if (Var[234] <= 84) {
+ if (Var[234] > 84) {
+ if (Var[234] >= 84) {
+--------------------------------------
+
+Class Of Is
+~~~~~~~~~~~
+Compares the 'class' of the given object number (var or word) against a list of class numbers, returns true if the object matches all of the given classes.
+
+--------------------------------------
+ if (classOfIs(Var[234], [12, 36, 37])) {
+--------------------------------------
+
+Legacy descumm forgets to add a closing parenthesis to this instruction.
+
+Is Actor In Box
+~~~~~~~~~~~~~~~
+Branches if the given actor (var or byte) is in the given box (var or byte).
+
+--------------------------------------
+ if (isActorInBox(Var[234], Var[170])) {
+--------------------------------------
+
+If Object State <3, 4>
+~~~~~~~~~~~~~~~~~~~~~~
+Compares the `state` of the given object number (var or word) against the given state. Not applicable for SCUMM V5.
+
+--------------------------------------
+ if (getState(Var[234]) == 63) {
+--------------------------------------
+
+--------------------------------------
+ if (getState(Var[234]) != 63) {
+--------------------------------------
+
+
+Functions
+---------
+When a function name or definition is followed by numbers in angle brackets, that function is only applicable for those listed versions of the SCUMM engine. Note that `3old` represents the engine used with Indy3, which is mostly the same as `3` with some small differences. Anything listed as supported by SCUMM version `3` is applicable for `3old`.
+
+actorFollowCamera
+~~~~~~~~~~~~~~~~~
+--------------------------------------
+ actorFollowCamera(VarOrByte actor)
+--------------------------------------
+ 
+Sets the camera to follow the given actor.
+ 
+actorFrompos
+~~~~~~~~~~~~
+--------------------------------------
+ Var result = actorFromPos(VarOrWord x, VarOrWord y)
+--------------------------------------
+ 
+Returns the actor located at the given co-ordinates.
+
+ActorOps
+~~~~~~~~
+--------------------------------------
+ ActorOps(VarOrByte actor, List sub-instructions)
+--------------------------------------
+ 
+ActorOps Sub-Instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
+ Unknown(VarOrByte arg1)
+--------------------------------------
+
+A dummy case, does nothing (in ScummVM).
+
+-------------------------------------- 
+ Costume(VarOrByte cost)
+--------------------------------------
+ 
+Sets the actor's costume.
+
+--------------------------------------
+ WalkSpeed(VarOrByte xspeed, VarOrByte yspeed)
+--------------------------------------
+ 
+Sets the actor's walking speed for x and y.
+ 
+--------------------------------------
+ Sound(VarOrByte sound)
+--------------------------------------
+ 
+Associates a sound with the actor (footsteps?)
+ 
+--------------------------------------
+ WalkAnimNr(VarOrByte walkanim)
+--------------------------------------
+ 
+Sets the current frame of the walking animation.
+ 
+--------------------------------------
+ TalkAnimNr(VarOrByte startanim, VarOrByte endanim)
+--------------------------------------
+ 
+Sets the start and stop frames of the talking animation.
+ 
+--------------------------------------
+ StandAnimNr(VarOrByte standanim)
+--------------------------------------
+ 
+Sets the current frame of the standing animation.
+ 
+--------------------------------------
+ Nothing(VarOrByte arg1, VarOrByte arg2, VarOrByte arg3)
+--------------------------------------
+ 
+Unknown; seems to be unused (at least in ScummVM).
+ 
+--------------------------------------
+ Init()
+--------------------------------------
+ 
+Initializes actor.
+ 
+--------------------------------------
+ Elevation(VarOrWord elev)
+--------------------------------------
+ 
+Sets the actor's elevation to the given value.
+ 
+--------------------------------------
+ DefaultAnims()
+--------------------------------------
+ 
+Initializes the actor's animation frames.
+
+ - Init frame = 1
+ - Walk frame = 2
+ - Stand frame = 3
+ - Talk start frame = 4
+ - Talk stop frame = 5
+
+-------------------------------------- 
+ Palette(VarOrByte index, VarOrByte value)
+--------------------------------------
+Sets the colour at the given index to a new value (another entry in the colour lookup table/CLUT). Index must be between 0 and 31 (the number of colours in a costume).
+
+--------------------------------------
+ TalkColor(VarOrByte colour)
+--------------------------------------
+Sets the actor's talk colour.
+
+--------------------------------------
+ Name(String actorname)
+--------------------------------------
+Sets the actor's name to the given string.
+
+--------------------------------------
+ InitAnimNr(VarOrByte initanim)
+--------------------------------------
+Sets the current frame of the initial animation.
+
+--------------------------------------
+ Width(VarOrByte width)
+--------------------------------------
+Sets the actor's width.
+
+--------------------------------------
+ Scale(VarOrByte xscale) <3, 4>
+--------------------------------------
+Sets the actor's X and Y scales at a 1:1 ratio.
+
+--------------------------------------
+ Scale(VarOrByte xscale, VarOrByte yscale) <5>
+--------------------------------------
+Sets the actor's X and Y scales.
+
+--------------------------------------
+ NeverZClip()
+--------------------------------------
+Turns off all Z-clipping for the actor.
+
+--------------------------------------
+ SetZClip(VarOrByte zplane)
+--------------------------------------
+Forces the actor's Z-clipping for the given Z-plane.
+
+--------------------------------------
+ IgnoreBoxes()
+--------------------------------------
+Ignores boxes, turns off Z-clipping, and puts actor somewhere if the actor is in the current room?
+
+--------------------------------------
+ FollowBoxes()
+--------------------------------------
+Follows boxes, turns off Z-clipping, and puts actor somewhere if the actor is in the current room?
+
+--------------------------------------
+ AnimSpeed(VarOrByte speed)
+--------------------------------------
+Sets the animation speed.
+
+--------------------------------------
+ ShadowMode(VarOrByte mode)
+-------------------------------------- 
+Sets the shadow mode.
+ 
+ActorOps Example
+^^^^^^^^^^^^^^^^
+--------------------------------------
+ ActorOps(8,[Init(),Costume(28),IgnoreBoxes(),NeverZClip(),WalkAnimNr(7),StandAnimNr(7),InitAnimNr(7),WalkSpeed(15,15)]);
+--------------------------------------
+
+animateCostume
+~~~~~~~~~~~~~~
+--------------------------------------
+ animateCostume(VarOrByte actor, VarOrByte anim)
+--------------------------------------
+Starts the given animation for the given actor.
+ 
+breakHere
+~~~~~~~~~
+--------------------------------------
+ breakHere()
+--------------------------------------
+ 
+Deschedules the currently running thread. Execution continues at the next instruction when the thread's next timeslot comes around.
+ 
+chainScript
+~~~~~~~~~~~
+--------------------------------------
+ chainScript(VarOrByte script, List arguments)
+--------------------------------------
+
+Replaces the currently running script with another one. The current script is terminated immediately and the new script (determined by the given script ID), is executed in the same thread. The new script has its local variables initialised to the list args. Uninitialised variables have undefined values.
+
+Cursor Command operations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------
+ CursorShow()
+--------------------------------------
+
+Turns the cursor on.
+
+--------------------------------------
+ CursorHide()
+--------------------------------------
+
+Turns the cursor off.
+
+--------------------------------------
+ UserputOn()
+--------------------------------------
+
+Enables user input.
+
+--------------------------------------
+ UserputOff()
+--------------------------------------
+
+Disables user input.
+
+--------------------------------------
+ CursorSoftOn()
+--------------------------------------
+
+Increments the cursor's state?
+
+--------------------------------------
+ CursorSoftOff()
+--------------------------------------
+
+Decrements the cursor's state?
+
+--------------------------------------
+ UserputSoftOn()
+--------------------------------------
+
+Increments "user input" counter (when greater than 0, user input is enabled).
+
+--------------------------------------
+ UserputSoftOff()
+--------------------------------------
+
+Decrements "user input" counter (when 0 or less, user input is disabled).
+
+--------------------------------------
+ SetCursorImg(VarOrByte cursor, VarOrByte charimg)
+--------------------------------------
+
+Changes the cursor image to a new one, based on image in a character set. Only used in Loom.
+
+--------------------------------------
+ setCursorHotspot(VarOrByte index, VarOrByte x, VarOrByte y)
+--------------------------------------
+
+Changes the hotspot of a cursor. Only used in Loom.
+
+Note that it starts with a lowercase letter.
+
+--------------------------------------
+ InitCursor(VarOrByte cursor)
+--------------------------------------
+
+Changes the current cursor. Must be between 0 and 3 inclusive.
+
+--------------------------------------
+ InitCharset(VarOrByte charset)
+--------------------------------------
+
+Initializes the given character set.
+
+--------------------------------------
+ LoadCharset(VarOrByte arg1, VarOrByte arg2) <3>
+--------------------------------------
+
+Loads the given character set (I believe one argument is the room containing the character set).
+
+--------------------------------------
+ CursorCommand(List colours) <4, 5>
+--------------------------------------
+
+Initializes the character set data & colours to the given arguments? Must have 16 arguments?
+ 
+cutscene
+~~~~~~~~
+--------------------------------------
+ cutscene(List arguments)
+--------------------------------------
+ 
+??? If required, runs a script passing the given arguments. Cutscene data given by the first argument in the list?
+ 
+debug
+~~~~~
+--------------------------------------
+ debug(VarOrWord arg1)
+ debug?(VarOrWord arg1)
+--------------------------------------
+ 
+Passes the parameter to the interpreter's debugger. What this does is entirely platform-specific (and may do nothing).
+ 
+Legacy descumm outputs a question mark in the function name, but this is optional in Scummbly.
+ 
+delay
+~~~~~
+--------------------------------------
+ delay(Delay del)
+--------------------------------------
+ 
+Suspends the current thread for the appropriate number of 1/60ths of a second. The Delay argument is a 24-bit constant.
+
+delayVariable
+~~~~~~~~~~~~~
+--------------------------------------
+ delayVarialbe(Var del)
+--------------------------------------
+ 
+var is dereferenced and the current thread suspended for that number of 1/60ths of a second.
+
+doSentence
+~~~~~~~~~~
+--------------------------------------
+ doSentence(VarOrByte verb, VarOrWord objectA, VarOrWord objectB)
+ doSentence(STOP)
+--------------------------------------
+
+Performs a verb sentence action, e.g. "Use monkey on hydrant". If verb is STOP, the current sentence script is stopped, status cleared etc.
+
+drawBox
+~~~~~~~
+--------------------------------------
+ drawBox(VarOrWord left, VarOrWord top, VarOrWord right, VarOrWord bottom, VarOrByte colour)
+--------------------------------------
+
+Draws a solid box on the backbuffer from (left, top) to (right, bottom) in the given colour.
+
+drawObject Operations
+~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------
+ drawObject(VarOrWord object)
+ drawObject(VarOrWord object))
+--------------------------------------
+Adds the object to the drawing queue. Legacy descumm adds an extra closing parenthesis.
+
+--------------------------------------
+ drawObject(VarOrWord object, setXY(VarOrWord x, VarOrWord y))
+--------------------------------------
+Moves the given object to the given co-ordinates, and adds it to the drawing queue.
+
+--------------------------------------
+ drawObject(VarOrWord object, setImage(VarOrWord image))
+--------------------------------------
+Sets the state of the object, adds it to the drawing queue.
+
+dummy <5>
+~~~~~~~~~
+--------------------------------------
+ dummy(A7)
+--------------------------------------
+
+V5 specific - The KIXX XL release of Monkey Island 2 (Amiga disk) used this opcode as a dummy, in order to remove copy protection and keep level selection.
+
+endCutscene
+~~~~~~~~~~~
+--------------------------------------
+ endCutscene
+--------------------------------------
+
+Ends the cutscene, performing cleanup if necessary.
+ 
+Legacy descumm outputs this instructions without a trailing semi-colon or parentheses.
+
+faceActor
+~~~~~~~~~
+--------------------------------------
+ faceActor(VarOrByte actor, VarOrWord object)
+--------------------------------------
+ 
+Tells actor to face object (presumably based on X/Y co-ordinates).
+
+findInventory
+~~~~~~~~~~~~~
+--------------------------------------
+ Var result = findInventory(VarOrByte owner, VarOrByte index)
+--------------------------------------
+
+Searches for all objects owned by owner (an actor or object), and returns the one at the given index (offset).
+ 
+findObject
+~~~~~~~~~~
+--------------------------------------
+ Var result = findObject(VarOrByte x, VarOrByte y)
+--------------------------------------
+ 
+Returns the first "touchable" local object at the given co-ordinates. Will not match on the bottom or right-hand edges of an object.
+ 
+Legacy descumm checks for words here while ScummVM looks for bytes; Scummbler looks for bytes.
+
+freezeScripts
+~~~~~~~~~~~~~
+--------------------------------------
+ freezeScripts(VarOrByte flag)
+--------------------------------------
+ 
+Freezes all scripts (by setting the high bit on each script's status). If flag is >= $80, all freeze resistent scripts will also be frozen. If flag is 0, all scripts are unfrozen. Freezing effects are cumulative - i.e. if script A is frozen twice, and unfrozen once, it will still be frozen until it is unfrozen a second time.
+
+getActorCostume
+~~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = getActorCostume(VarOrByte actor)
+--------------------------------------
+
+Returns the actor's current costume.
+
+getActorElevation
+~~~~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = getActorElevation(VarOrByte actor)
+--------------------------------------
+
+Returns the actor's current elevation.
+ 
+getActorFacing
+~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = getActorFacing(VarOrByte actor)
+--------------------------------------
+
+Returns the current direction the actor is facing.
+
+getActorMoving
+~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = getActorMoving(VarOrByte actor)
+--------------------------------------
+
+Returns the actor's moving status (0 or 1).
+
+getActorRoom
+~~~~~~~~~~~~
+--------------------------------------
+ Var result = getActorRoom(VarOrByte actor)
+--------------------------------------
+
+Returns the room the actor currently occupies.
+ 
+getActorScale <not 3old>
+~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = getActorScale(VarOrByte actor)
+--------------------------------------
+
+Returns the actor's current scale.
+ 
+getActorWalkBox
+~~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = getActorWalkBox(VarOrByte actor)
+--------------------------------------
+
+Returns the actor's walkbox.
+ 
+getActorWidth
+~~~~~~~~~~~~~
+--------------------------------------
+ Var result = getActorWidth(VarOrByte actor)
+--------------------------------------
+
+Returns the actor's width.
+ 
+getActorX
+~~~~~~~~~
+--------------------------------------
+ Var result = getActorX(VarOrWord actor)
+--------------------------------------
+
+Returns the actor's current X co-ordinate.
+ 
+getActorY
+~~~~~~~~~
+--------------------------------------
+ Var result = getActorY(VarOrByte actor) <3old>
+--------------------------------------
+--------------------------------------
+ Var result = getActorY(VarOrWord actor) <3, 4, 5>
+--------------------------------------
+
+Returns the actor's current Y co-ordinate.
+ 
+getAnimCounter <5>
+~~~~~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = getAnimCounter(VarOrByte actor)
+--------------------------------------
+
+Returns the actor's animation counter.
+ 
+getClosestObjActor
+~~~~~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = getClosestObjActor(VarOrByte actor)
+--------------------------------------
+
+Returns the object closest to the actor. Items that are more than 255 units (pixels in SCUMM V5) away from the actor will not be detected.
+ 
+getDist
+~~~~~~~
+--------------------------------------
+ Var result = getDist(VarOrWord x, VarOrWord y)
+--------------------------------------
+
+Returns the distance between two actors/objects (objA and objB).
+ 
+getInventoryCount
+~~~~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = getInventoryCount(VarOrByte actor)
+--------------------------------------
+
+Returns the number of items in an actor's inventory.
+ 
+getObjectOwner
+~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = getObjectOwner(VarOrWord object)
+--------------------------------------
+
+Returns the owner of an object.
+ 
+getObjectState
+~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = getObjectState(VarOrWord object)
+--------------------------------------
+
+Returns the state of the object.
+ 
+getRandomNr
+~~~~~~~~~~~
+--------------------------------------
+ Var result = getRandomNr(VarOrByte seed)
+--------------------------------------
+
+Returns a new random number based on the given seed.
+ 
+getStringWidth
+~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = getStringWidth(VarOrByte)
+--------------------------------------
+
+Gets the length of the string pointed to by strptr (either a variable or direct byte), stores the returned value in result.
+ 
+getVerbEntryPoint
+~~~~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = getVerbEntryPoint(VarOrWord object, VarOrWord verb)
+--------------------------------------
+
+Returns the entry point for the response code/script for when the given verb is applied to the given object. i.e. gets the start of the script to run for the specific user interaction.
+ 
+isScriptRunning
+~~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = isScriptRunning(VarOrByte script)
+--------------------------------------
+
+Returns `1` if the given script is running, `0` if it's not.
+ 
+isSoundRunning
+~~~~~~~~~~~~~~
+--------------------------------------
+ Var result = isSoundRunning(VarOrByte sound)
+--------------------------------------
+
+Returns `1` if sound is running, returns `0` if sound is not running or if the given `sound` is `0`.
+ 
+lights
+~~~~~~
+--------------------------------------
+ lights(VarOrByte arg1, Byte arg2, Byte arg3)
+--------------------------------------
+ 
+If `arg3` is `0`, the 'current lights' variable is set to `arg1`.
+If `arg3` is `1`, the size of the 'flashlight' light is determined by `arg1` and `arg2`, for width and height in stripes (which are equivalent to 8 pixels each).
+ 
+loadRoom
+~~~~~~~~
+--------------------------------------
+ loadRoom(VarOrByte room)
+--------------------------------------
+
+Loads the given room into memory.
+ 
+loadroomWithEgo
+~~~~~~~~~~~~~~~
+--------------------------------------
+ loadRoomWithEgo(VarOrWord object, VarOrByte room, Word x, Word y)
+--------------------------------------
+
+Places the Ego actor in room at object's position. If `x` is not `-1`, Ego will start moving towards the given x and y co-ordinates. If object is not in the given room an error will occur.
+
+Matrix Operations
+~~~~~~~~~~~~~~~~~
+--------------------------------------
+ setBoxFlags(VarOrByte box, Byte val) <3>
+--------------------------------------
+
+Sets the box's flags to the given value.
+
+--------------------------------------
+ setBoxFlags(VarOrByte box, VarOrByte val) <4, 5>
+--------------------------------------
+
+Sets the box's flags to the given value.
+
+--------------------------------------
+ setBoxScale(VarOrByte box, VarOrByte val) <4, 5>
+--------------------------------------
+
+Sets the box's scale.
+
+--------------------------------------
+ SetBoxSlot(VarOrByte box, VarOrByte val) <4, 5>
+--------------------------------------
+
+Sets the box's scale to `((val - 1) OR $8000)`.
+
+--------------------------------------
+ createBoxMatrix() <4, 5>
+--------------------------------------
+
+Initializes the matrix of boxes, by determining the distances and shortest paths between boxes.
+
+
+oldRoomEffect
+~~~~~~~~~~~~~
+--------------------------------------
+oldRoomEffect-set(VarOrWord effect)
+--------------------------------------
+--------------------------------------
+oldRoomEffect-fadein(VarOrWord effect)
+--------------------------------------
+
+
+Override Operations
+~~~~~~~~~~~~~~~~~~~
+--------------------------------------
+ beginOverride
+ beginOverride()
+--------------------------------------
+
+beginOverride must be immediately followed by a `goto` instruction.
+
+--------------------------------------
+ endOverride
+ endOverride()
+--------------------------------------
+
+Overrides are used by cutscenes; after a beginOverride instruction, if a cutscene is skipped (e.g. if the user presses the ESC key), the script will jump to the instruction pointed to by the `goto` that follows beginOverride (not necessarily the location of endOverride).
+
+Legacy descumm omits the parentheses for both instructions.
+
+
+panCameraTo
+~~~~~~~~~~~
+--------------------------------------
+ panCameraTo(VarOrWord x)
+--------------------------------------
+
+pickupObject
+~~~~~~~~~~~~
+--------------------------------------
+ pickupObject(VarOrWord object) <3, 4>
+--------------------------------------
+--------------------------------------
+ pickupObject(VarOrWord object, VarOrByte room) <5>
+--------------------------------------
+ 
+Print and PrintEgo Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------
+ print(VarOrByte actor, List sub-instructions)
+--------------------------------------
+
+Sets text properties for the given actor and displays dialogue.
+
+--------------------------------------
+ printEgo(List sub-instructions)
+--------------------------------------
+ 
+Sets text properties for the player character (`VAR_EGO`) and displays dialogue.
+ 
+Print and PrintEgo Sub-Instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
+ Pos(VarOrWord x, VarOrWord y)
+--------------------------------------
+
+Sets the position of the text that follows.
+
+--------------------------------------
+ Color(VarOrByte colour)
+--------------------------------------
+
+Sets the colour of the text.
+
+--------------------------------------
+ Clipped(VarOrWord right)
+--------------------------------------
+
+Clips the text's right-hand side (possibly for wrapping).
+
+--------------------------------------
+ RestoreBG(VarOrWord width, VarOrWord height)
+--------------------------------------
+
+Erases characters (not used in ScummVM).
+
+--------------------------------------
+ Center()
+--------------------------------------
+
+Centres the text.
+
+--------------------------------------
+ Height(VarOrWord y) <3>
+--------------------------------------
+
+Sets the height of the text.
+
+--------------------------------------
+ Left() <4, 5>
+--------------------------------------
+
+Left-aligns the text.
+
+--------------------------------------
+ Overhead()
+--------------------------------------
+
+Overhead-aligns the text.
+
+--------------------------------------
+ Text(String text)
+--------------------------------------
+
+Prints the text string that follows. `text` can contain escape characters (escaped with the `^` character).
+
+--------------------------------------
+ PlayCDTrack(VarOrWord offset, VarOrWord duration) <4>
+--------------------------------------
+
+Plays the first audio track on the game CD (so actually track 2), from the given offset and for the given duration. Only used in LoomCD.
+
+
+PseudoRoom
+~~~~~~~~~~
+--------------------------------------
+ PseudoRoom(Byte val, List resources)
+ PseudoRoom(Byte val, '[IG]')
+--------------------------------------
+
+Resources are bytes. You can pass the special text `IG` instead of any values in the list.
+
+putActor
+~~~~~~~~
+--------------------------------------
+ putActor(Byte actor, VarOrWord x, VarOrWord y)
+--------------------------------------
+ 
+Puts the actor at the given co-ordinates.
+ 
+putActorAtObject
+~~~~~~~~~~~~~~~~
+--------------------------------------
+ putActorAtObject(Byte actor, VarOrWord object)
+--------------------------------------
+ 
+Puts the actor at the given object's position. If the object can not be found, a default position is returned (the centre of the screen in ScummVM).
+ 
+putActorInRoom
+~~~~~~~~~~~~~~
+--------------------------------------
+ putActorInRoom(Byte actor, Byte room)
+--------------------------------------
+
+Puts the actor in the given room.
+ 
+Resource Operations
+~~~~~~~~~~~~~~~~~~~
+--------------------------------------
+ Resource.loadScript(VarOrByte res)
+ Resource.loadSound(VarOrByte res)
+ Resource.loadCostume(VarOrByte res)
+ Resource.loadRoom(VarOrByte res)
+--------------------------------------
+
+Loads the given resource.
+
+--------------------------------------
+ Resource.nukeScript(VarOrByte res)
+ Resource.nukeSound(VarOrByte res)
+ Resource.nukeCostume(VarOrByte res)
+ Resource.nukeRoom(VarOrByte res)
+--------------------------------------
+
+Obliterates the resource from memory.
+
+--------------------------------------
+ Resource.lockScript(VarOrByte res)
+ Resource.lockSound(VarOrByte res)
+ Resource.lockCostume(VarOrByte res)
+ Resource.lockRoom(VarOrByte res)
+--------------------------------------
+
+Locks the resource.
+
+--------------------------------------
+ Resource.unlockScript(VarOrByte res)
+ Resource.unlockSound(VarOrByte res)
+ Resource.unlockCostume(VarOrByte res)
+ Resource.unlockRoom(VarOrByte res)
+--------------------------------------
+ 
+Unlocks the resource.
+ 
+--------------------------------------
+ Resource.clearHeap()
+--------------------------------------
+
+Clears the heap.
+
+--------------------------------------
+ Resource.loadCharset(VarOrByte charset)
+--------------------------------------
+
+Loads the given character set into memory.
+
+--------------------------------------
+ Resource.nukeCharset(VarOrByte charset)
+--------------------------------------
+
+Obliterates the given character set from memory.
+
+--------------------------------------
+ Resource.loadFlObject(VarOrByte room, VarOrWord object)
+--------------------------------------
+
+Loads an object from the given room resource.
+ 
+Room Operations
+~~~~~~~~~~~~~~~
+--------------------------------------
+ RoomScroll(VarOrWord minX, VarOrWord maxX)
+--------------------------------------
+
+Clamps the given arguments so scrolling does not extend past the width of the room or screen.
+
+--------------------------------------
+RoomColor(VarOrWord colour, VarOrWord index) <3, 4>
+--------------------------------------
+
+Sets the room's colour to the given palette index.
+
+--------------------------------------
+ SetScreen(VarOrWord b, VarOrWord h)
+--------------------------------------
+
+Initialises a screen.
+
+Legacy descumm outputs an extra closing parenthesis for RoomIntensity, SetScreen, SetPalColor and possibly others.
+
+--------------------------------------
+ ShakeOn()
+--------------------------------------
+
+Starts the room shaking.
+
+--------------------------------------
+ ShakeOff()
+--------------------------------------
+
+Ends the room shaking.
+
+--------------------------------------
+ RoomIntensity(VarOrByte scale, VarOrByte startcolour, VarOrByte endcolour)
+--------------------------------------
+
+Lightens/darkens the room's palette.
+
+Legacy descumm outputs an extra closing parenthesis for RoomIntensity, SetScreen, SetPalColor and possibly others.
+
+--------------------------------------
+ saveLoad(VarOrByte loadflag, VarOrByte loadslot) <5>
+ saveLoad?(VarOrByte loadflag, VarOrByte loadslot)
+--------------------------------------
+
+Saves temporary state of the room/game (possibly autosave). Legacy descumm outputs the function name with a question mark.
+
+--------------------------------------
+ screenEffect(VarOrWord effect) <5>
+ screenEffect?(VarOrWord effect)
+--------------------------------------
+
+If effect is 0, fades in the room. Otherwise, fades out with the given effect (taken from the high byte of effect).
+
+ 1 = iris effect
+ 2 = box wipe (upper-left to bottom-right)
+ 3 = box wipe (upper-right to bottem-left)
+ 4 = inverse box wipe.
+ 
+Legacy descumm outputs the function name with a question mark.
+
+--------------------------------------
+ colorCycleDelay(VarOrByte index, VarOrByte delay) <5>
+--------------------------------------
+
+Starts colour cycling with given delay between changes. `index` is between 0 and 16
+
+--------------------------------------
+ SetPalColor(VarOrByte colour, VarOrByte index) <3, 4>
+--------------------------------------
+--------------------------------------
+ SetPalColor(VarOrWord red, VarOrWord green, VarOrWord blue, VarOrByte index) <5>
+--------------------------------------
+
+Adjusts the room's palette.
+
+Legacy descumm outputs an extra closing parenthesis for RoomIntensity, SetScreen, SetPalColor and possibly others.
+
+--------------------------------------
+ SetRoomScale(VarOrByte scale1, VarOrByte y1, VarOrByte scale2, VarOrByte y2, VarOrByte slot) <5>
+ Unused(VarOrByte scale1, VarOrByte y1, VarOrByte scale2, VarOrByte y2, VarOrByte slot)
+--------------------------------------
+
+Sets the room's y scales (given slot may be 1 greater than actual slot).
+
+`Unused` is what legacy descumm calls `SetRoomScale`. They are the same function.
+
+--------------------------------------
+ setRGBRoomIntensity(VarOrWord redscale, VarOrWord greenscale, VarOrWord bluescale, VarOrWord start, VarOrWord end) <5>
+--------------------------------------
+
+Lightens/darkens the room's palette, with different scales for red, green and blue.
+
+--------------------------------------
+ setRoomShadow(VarOrWord redscale, VarOrWord greenscale, VarOrWord bluescale, VarOrWord start, VarOrWord end) <5>
+--------------------------------------
+
+Lightens/darkens the shadow palette, with different scales for red, green, and blue.
+
+--------------------------------------
+ saveString(VarOrByte slot, String text) <5>
+--------------------------------------
+
+Saves a string resource to the given file?
+
+--------------------------------------
+ loadString(VarOrByte slot, String text) <5>
+--------------------------------------
+
+Loads a string resource from a given file?
+
+--------------------------------------
+ palManipulate(VarOrByte slot, VarOrByte start, VarOrByte end, VarOrByte time) <5>
+--------------------------------------
+
+Manipulates palettes, strings?
+
+Legacy descumm outputs some functions with question marks in the name; these are optional.
+
+
+SaveLoadGame <3, 4>
+~~~~~~~~~~~~~~~~~~~
+--------------------------------------
+ Var target = saveLoadGame(VarOrByte arg1)
+--------------------------------------
+
+Performs various file operations. The operation is determined by taking the highest 3 bits of arg1; the lower 5 bits determine which file/resource slot to use.
+
+Operations:
+--------------------------------------
+ 0x00 - Get number of available slots.
+ 0x20 - In SCUMM v3, returns the type of the current drive. In SCUMM v4, sets the drive (returns 1).
+ 0x40 - Loads a game from the given slot (returns 3 if successful, 5 if otherwise).
+ 0x80 - Saves a game to the given slot (returns 0 if successful, 2 if otherwise).
+ 0xC0 - Tests if a game exists in the given slot (returns 6 if occupied, 7 if otherwise).
+--------------------------------------
+
+
+SaveLoadVars <3, 4>
+~~~~~~~~~~~~~~~~~~~
+
+--------------------------------------
+ saveLoadVars(Literal operation, ZeroOrMore Literal subops)
+--------------------------------------
+
+This one's a doozy! There's two components: the operation (save or load), and zero or more sub-ops.
+
+Possible values for operation are:
+--------------------------------------
+ Save
+ Load
+--------------------------------------
+
+Possible sub-ops are:
+--------------------------------------
+ VarRange(Variable start, Variable end)
+ StringRange(VarOrByte start, VarOrByte end)
+ Open
+ Close*
+ Append*
+--------------------------------------
+
+For `VarRange`, `start` and `end` are the first and last variables to save/load. For `StringRange`, they are resource slots.
+ 
+*NOTE: If present, `Close` and `Append` must be the last sub-op, and you cannot have both.
+
+Here's an example of its usage:
+--------------------------------------
+ SaveLoadVars(Save, VarRange(Var[126], Var[139]), Open, Append)
+--------------------------------------
+
+
+Save/Restore Verbs Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------
+ saveVerbs(VarOrByte start, VarOrByte end, VarOrByte mode)
+--------------------------------------
+
+For all verbs between start and end, sets the "saveid" to mode.
+
+--------------------------------------
+ restoreVerbs(VarOrByte start, VarOrByte end, VarOrByte mode)
+--------------------------------------
+
+For all verbs between start and end and matching mode, kills any existing verb, sets the saveid to 0 and generally inits the verb.
+
+--------------------------------------
+ deleteVerbs(VarOrByte start, VarOrByte end, VarOrByte mode)
+--------------------------------------
+
+For all verbs between start and end and matching mode, kills any existing verb.
+
+ 
+setCameraAt
+~~~~~~~~~~~
+--------------------------------------
+ setCameraAt(VarOrWord x)
+--------------------------------------
+ 
+Sets the camera's x position.
+
+setClass
+~~~~~~~~
+--------------------------------------
+ setClass(VarOrWord actor, List classes)
+--------------------------------------
+ 
+Makes object inherit from all of the given classes. A class of "0" will clear all of the object's existing class data.
+ 
+setObjectName
+~~~~~~~~~~~~~
+--------------------------------------
+ setObjectName(VarOrWord object, String name)
+--------------------------------------
+ 
+Sets the given object's name.
+ 
+setOwnerOf
+~~~~~~~~~~
+--------------------------------------
+ setOwnerOf(VarOrWord object, VarOrByte owner)
+--------------------------------------
+ 
+Sets the owner of the object.
+ 
+setState
+~~~~~~~~
+--------------------------------------
+ setState(VarOrWord object, VarOrByte state)
+--------------------------------------
+ 
+Sets the state of the object.
+ 
+setVarRange
+~~~~~~~~~~~
+--------------------------------------
+ setVarRange(Var startvar, List values)
+ setVarRange(Var startvar, Byte numvalues, List values)
+--------------------------------------
+ 
+This assigns a list of values to a range of variables.
+ 
+Values can be either bytes 'or' words, but not both, and is determined by the maximum value present.
+
+descumm outputs the number of values in the list as `numvalues`, this is optional.
+
+setVarRange Example
+^^^^^^^^^^^^^^^^^^^
+--------------------------------------
+ setVarRange(Var[109], [1, 2, 3, 4, 5, 6])
+ setVarRange(Var[109],6,[1,2,3,4,5,6])
+--------------------------------------
+
+The above instructions are the same, the second instruction just explicitly states the number of values in the list that follows. After running this instruction, the affected variables will look like this:
+
+--------------------------------------
+ Var[109] = 1
+ Var[110] = 2
+ Var[111] = 3
+ Var[112] = 4
+ Var[113] = 5
+ Var[114] = 6
+--------------------------------------
+
+soundKludge <5>
+~~~~~~~~~~~~~~~
+--------------------------------------
+ soundKludge(List imuseinst)
+--------------------------------------
+
+soundKludge adds instructions to the queue for the `iMUSE` dynamic music system. If the first item in the list is `-1`, the existing sound queue is processed. Otherwise, the list of instructions is added to the queue. The instructions are just normal variables or constants.
+
+Alban Bedel, the author of ScummC, has some info on iMUSE at his website: http://alban.dotsec.net/15.html
+
+startMusic
+~~~~~~~~~~
+--------------------------------------
+ startMusic(VarOrByte song)
+--------------------------------------
+
+Adds the music into the queue to be played.
+ 
+startObject
+~~~~~~~~~~~
+--------------------------------------
+ startObject(VarOrWord object, VarOrByte script, List arguments)
+--------------------------------------
+
+Starts the object's script (OBCD blocks), passing the given arguments.
+
+startScript
+~~~~~~~~~~~
+--------------------------------------
+ startScript(VarOrByte script, List arguments[, R][, F])
+ (0A) startScript(VarOrByte script, List arguments)
+--------------------------------------
+
+Spawns a new thread running the code in script script. The new script has its local variables initialised to the list args. Uninitialised variables have undefined values.
+
+The `R` and `F` flags indicate whether the script is recursive and/or freeze resistent.
+
+Legacy descumm does not output these flags, so Scummbler will look at the opcode value. However, you should not include both the opcode and the flags, as they will conflict and lead to ambiguity as to the intended meaning.
+
+startScript Examples
+^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
+ startScript(124, [Var[278]])
+ (0A) startScript(124, [Var[278]])
+--------------------------------------
+ 
+Both of the above instructions start script 124 normally.
+
+--------------------------------------
+ startScript(124, [Var[278]], F)
+ (2A) startScript(124, [Var[278]])
+--------------------------------------
+ 
+Both of the above instructions start script 124 with the 'freeze resistent' flag set.
+
+--------------------------------------
+ (2A) startScript(124, [Var[278]], R)
+--------------------------------------
+ 
+This will start script 124 with both 'freeze resistent' and 'recursive' flags set, even though the 'freeze resistent' flag has not been specified in the function call, as the flag is present in the original opcode.
+
+startSound
+~~~~~~~~~~
+--------------------------------------
+ startSound(VarOrByte sound)
+--------------------------------------
+ 
+Adds the given sound to the sound queue to be played.
+ 
+stopMusic
+~~~~~~~~~
+--------------------------------------
+ stopMusic()
+--------------------------------------
+
+Stops all sounds.
+ 
+stopObjectCode
+~~~~~~~~~~~~~~
+--------------------------------------
+ stopObjectCode()
+--------------------------------------
+ 
+Marks the calling script as dead, to be later pruned from the thread pool. Cleans up residual arrays. This must always be the last instruction in every script.
+
+stopObjectScript
+~~~~~~~~~~~~~~~~
+--------------------------------------
+ stopObjectScript(VarOrWord objscript)
+--------------------------------------
+ 
+Marks the given object script as dead, to be later pruned from the thread pool. Cleans up residual arrays.
+ 
+stopScript
+~~~~~~~~~~
+--------------------------------------
+ stopScript(VarOrByte script)
+--------------------------------------
+ 
+Marks the given script as dead, to be later pruned from the thread pool. Cleans up residual arrays.
+ 
+stopSound
+~~~~~~~~~
+--------------------------------------
+ stopSound(VarOrByte sound)
+--------------------------------------
+ 
+Stops the given sound.
+ 
+String Operations
+~~~~~~~~~~~~~~~~~
+--------------------------------------
+ PutCodeInString(VarOrByte resID, String text)
+--------------------------------------
+
+Loads the string into the resource slot given by `resID`.
+
+--------------------------------------
+ CopyString(VarOrByte destinationID, VarOrByte sourceID)
+--------------------------------------
+
+Creates a duplicate of the string at `sourceID` into `destinationID`. The old string at `destinationID` is lost.
+
+--------------------------------------
+ SetStringChar(VarOrByte resID, VarOrByte index, Byte char)
+--------------------------------------
+
+Writes char at the given position `index` of the string resource located at slot `resID`. Out of bounds accesses cause undefined behaviour.
+
+--------------------------------------
+ Var result = GetStringChar(VarOrByte resID, VarOrByte index)
+--------------------------------------
+
+Reads a byte (an ASCII character) at the given position `index` of the string resource located at slot `resID`, and writes it to `result`. Out of bounds accesses cause undefined behaviour.
+
+--------------------------------------
+ CreateString(VarOrByte resID, VarOrByte size)
+--------------------------------------
+
+Allocates or frees a string resource, located at resource slot `resID`. The string length is initialised to `size`; if `size` is zero, the string is freed.
+
+
+systemOps
+~~~~~~~~~
+--------------------------------------
+ systemOps(Byte operation)
+--------------------------------------
+ 
+`operation` must be:
+ 
+ `1` or `RESTART` (to restart the game)
+ `2` or `PAUSE` (to pause/unpause the game)
+ `3` or `QUIT` (to quit the game)
+ 
+`RESTART`, `PAUSE`, and `QUIT` are special tokens and should not be enclosed in quotes.
+ 
+Verb Operations
+~~~~~~~~~~~~~~~
+--------------------------------------
+ VerbOps(VarOrByte verb, List sub-instruction)
+--------------------------------------
+ 
+Verb Sub-Instructions
+^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
+ Image(VarOrWord image)
+--------------------------------------
+
+Assigns an image (object) to a verb.
+
+--------------------------------------
+ Text(String name)
+--------------------------------------
+
+Assigns the name to the verb slot.
+
+--------------------------------------
+ Color(VarOrByte colour)
+--------------------------------------
+
+Sets the colour of the verb.
+
+--------------------------------------
+ HiColor(VarOrByte hicolour)
+--------------------------------------
+
+Sets the highlight colour of the verb.
+
+--------------------------------------
+ SetXY(VarOrWord x, VarOrWord y)
+--------------------------------------
+
+Sets the verb's top-left co-ordinates.
+
+--------------------------------------
+ On()
+--------------------------------------
+
+Makes this verb active.
+
+--------------------------------------
+ Off()
+--------------------------------------
+
+Makes this verb inactive.
+
+--------------------------------------
+ Delete()
+--------------------------------------
+
+Kills this verb.
+
+--------------------------------------
+ New()
+--------------------------------------
+
+Creates a verb in the slot for the given verb. If the slot is `0` (verb doesn't already exist), will add it to the next unusued slot; if this exceeds the global maximum number of verbs an error will be raised.
+
+--------------------------------------
+ DimColor(VarOrByte colour)
+--------------------------------------
+
+Sets the dim colour of the verb.
+
+--------------------------------------
+ Dim()
+--------------------------------------
+
+Dims this verb.
+
+--------------------------------------
+ Key(VarOrByte key)
+--------------------------------------
+
+Sets the key code associated with this verb.
+
+--------------------------------------
+ Center()
+--------------------------------------
+
+Centres the verb.
+
+--------------------------------------
+ SetToString(VarOrWord stringID)
+--------------------------------------
+
+Loads the given string resource into the verb's slot. If either the string resource or verb slot is not found (0), the verb resource is nuked.
+
+--------------------------------------
+ SetToObject(VarOrWord object, VarOrByte room)
+--------------------------------------
+
+Assigns an object from the given room to the verb (if the object's image is not already the given object).
+
+--------------------------------------
+ BackColor(VarOrByte colour)
+--------------------------------------
+
+Sets the background colour of the verb.
+
+
+Wait Operations
+~~~~~~~~~~~~~~~
+--------------------------------------
+ WaitForActor(VarOrByte actor) <not 3old>
+--------------------------------------
+
+If the given `actor` is moving, breaks this script's execution and resumes at this instruction again.
+
+--------------------------------------
+ WaitForMessage()
+--------------------------------------
+
+If the global variable `VAR_HAVE_MSG` (`Var[3]`) is not zero, breaks this script's execution and resumes at this instruction again.
+
+--------------------------------------
+ WaitForCamera() <not 3old>
+--------------------------------------
+
+If the camera has not reached its destination x position, breaks this script's execution and resumes at this instruction again.
+
+--------------------------------------
+ WaitForSentence()
+--------------------------------------
+
+If there is a sentence present, breaks this script's execution and resumes at this instruction again
+
+walkActorTo
+~~~~~~~~~~~
+--------------------------------------
+ walkActorTo(VarOrByte actor, VarOrWord x, VarOrWord y)
+--------------------------------------
+
+Sets the actor to begin walking to the given position.
+
+walkActorToActor
+~~~~~~~~~~~~~~~~
+
+--------------------------------------
+ walkActorToActor(VarOrByte walkingactor, VarOrByte targetactor, Byte distance)
+--------------------------------------
+
+Walks `walkingactor` towards `targetactor` by the given `distance`.
+
+walkActorToObject
+~~~~~~~~~~~~~~~~~
+--------------------------------------
+ walkActorToObject(VarOrByte actor, VarOrWord object)
+--------------------------------------
+
+Sets the `actor` to begin walking to the given object's position.
+
+
+Example Scripts
+---------------
+
+Monkey Island 2 Introduction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This is the campfire cutscene from the beginning of Monkey Island 2, as decompiled by descumm.
+
+--------------------------------
+Script# 202
+[0000] (40) cutscene([1]);
+[0005] (0C) Resource.loadCharset(4);
+[0008] (58) beginOverride();
+[000A] (18) goto 049D;
+[000D] (11) animateCostume(11,5);
+[0010] (2E) delay(60);
+[0014] (D8) printEgo([Text("So I bust into the church and say, `Now you're in for it, you bilious bag of barnacle bait!`")]);
+[0073] (AE) WaitForMessage();
+[0075] (D8) printEgo([Text("^and then LeChuck cries, `Guybrush!  Have mercy!`\xFF\x03`I can't take it anymore!`")]);
+[00C5] (AE) WaitForMessage();
+[00C7] (11) animateCostume(11,7);
+[00CA] (13) ActorOps(11,[TalkAnimNr(6,7)]);
+[00D0] (14) print(12,[Text("I think I know how he must have felt.")]);
+[00F9] (AE) WaitForMessage();
+[00FB] (14) print(11,[Text("Yeah, if I hear this story one more time, I'm gonna be crying myself.")]);
+[0144] (AE) WaitForMessage();
+[0146] (14) print(12,[Text("Don't you have any NEW stories?")]);
+[0169] (2E) delay(30);
+[016D] (13) ActorOps(11,[TalkAnimNr(4,5)]);
+[0173] (11) animateCostume(11,5);
+[0176] (AE) WaitForMessage();
+[0178] (D8) printEgo([Text("Well, actually, that's why I'm here on Scabb Island.\xFF\x03I'm on a whole new adventure.")]);
+[01CE] (AE) WaitForMessage();
+[01D0] (14) print(11,[Text("Growing a mustache?")]);
+[01E7] (AE) WaitForMessage();
+[01E9] (D8) printEgo([Text("No.\xFF\x03Bigger than that.")]);
+[0202] (AE) WaitForMessage();
+[0204] (14) print(11,[Text("A beard?!?")]);
+[0212] (AE) WaitForMessage();
+[0214] (D8) printEgo([Text("No, I'm in search of treasure.\xFF\x03The biggest treasure of them all.")]);
+[0258] (AE) WaitForMessage();
+[025A] (11) animateCostume(11,7);
+[025D] (D8) printEgo([Text("A treasure so valuable and so well hidden, that it haunts the dreams of every pirate on the seas.")]);
+[02C1] (AE) WaitForMessage();
+[02C3] (11) animateCostume(11,5);
+[02C6] (14) print(11,[Text("You mean^")]);
+[02D3] (AE) WaitForMessage();
+[02D5] (11) animateCostume(11,7);
+[02D8] (2E) delay(60);
+[02DC] (11) animateCostume(11,5);
+[02DF] (2E) delay(30);
+[02E3] (11) animateCostume(11,4);
+[02E6] (14) print(12,[Text("Big Whoop?               \xFF\x02")]);
+[0305] (14) print(255,[Color(235),Text("                               Big Whoop?")]);
+[0334] (AE) WaitForMessage();
+[0336] (11) animateCostume(12,5);
+[0339] (11) animateCostume(11,5);
+[033C] (AE) WaitForMessage();
+[033E] (D8) printEgo([Text("None other.")]);
+[034C] (AE) WaitForMessage();
+[034E] (14) print(12,[Text("Then, why'd you come here?\xFF\x03There's no treasure on Scabb Island!")]);
+[0392] (AE) WaitForMessage();
+[0394] (D8) printEgo([Text("Well, I didn't know that before!\xFF\x03Now I'm trying to charter a ship and look someplace else.")]);
+[03F2] (AE) WaitForMessage();
+[03F4] (D8) printEgo([Text("When I return, I'll have riches galore, and a whole new story.")]);
+[0435] (AE) WaitForMessage();
+[0437] (14) print(12,[Text("Or you'll have died trying.")]);
+[0456] (AE) WaitForMessage();
+[0458] (13) ActorOps(11,[TalkAnimNr(6,7)]);
+[045E] (14) print(11,[Text("Either way, we won't have to hear about LeChuck anymore.")]);
+[049A] (AE) WaitForMessage();
+[049C] (80) breakHere();
+[049D] (58) endOverride();
+[049F] (2C) InitCharset(2);
+[04A2] (1A) Bit[164] = 1;
+[04A7] (AD) putActorInRoom(VAR_EGO,4);
+[04AB] (81) putActor(VAR_EGO,591,140);
+[04B2] (33) screenEffect(129);
+[04B6] (C0) endCutscene();
+[04B7] (2C) CursorShow();
+[04B9] (2C) UserputOn();
+[04BB] (0A) startScript(16,[2]);
+[04C1] (0A) startScript(22,[]);
+[04C4] (D2) actorFollowCamera(VAR_EGO);
+[04C7] (A0) stopObjectCode();
+END
+--------------------------------
+
+The very first line tells us that this is a local script; that is, it is stored within a room container, and cannot be called from any other room.
+
+--------------------------------
+Script# 202
+--------------------------------
+
+So, what can we do? Let's give Guybrush a new story to tell. First, let's define a few values for convenience. If you load up Monkey Island 2, you will discover that Fink says the line "I think I know how he must have felt.", and Bart says the line "Yeah, if I hear this story one more time, I'm gonna be crying myself.". If we look at the calling code...
+
+--------------------------------
+...
+[00CA] (13) ActorOps(11,[TalkAnimNr(6,7)]);
+[00D0] (14) print(12,[Text("I think I know how he must have felt.")]);
+[00F9] (AE) WaitForMessage();
+[00FB] (14) print(11,[Text("Yeah, if I hear this story one more time, I'm gonna be crying myself.")]);
+...
+--------------------------------
+
+... we can determine that actor 12 is Fink and actor 11 is Bart. If you look at the ActorOps instruction above it, we can see that Bart's talking animation is changed; from playing the game we can see that it makes Bart face Fink. So, let's modify the start of the script to define some known values!
+
+--------------------------------
+#define BART 11
+#define FINK 12
+#define BART_ANIM_FF 6
+#define BART_ANIM_FF_STOP 7
+#define BART_ANIM_FG 4
+#define BART_ANIM_FG_STOP 5
+Script# 202
+[0000] (40) cutscene([1]);
+...
+--------------------------------
+
+Now, let's insert our new conversation, making use of these define values.
+
+--------------------------------
+[0146] (14) print(12,[Text("Don't you have any NEW stories?")]);
+[0169] (2E) delay(30);
+[016D] (13) ActorOps(11,[TalkAnimNr(4,5)]);
+[0173] (11) animateCostume(11,5);
+[0176] (AE) WaitForMessage();
+
+/* Here starts our new Scummbly! */
+/* Escape characters \xFF\x03 splits the text across two screens.*/
+printEgo([Text("Uh... well...\xFF\x03Did I tell you I travelled here by strapping two turtles to my feet?")]);
+WaitForMessage();
+print(FINK,[Text("Wasn't that in a movie?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FF_STOP); /* Bart faces Fink */
+ActorOps(BART,[TalkAnimNr(BART_ANIM_FF,BART_ANIM_FF_STOP)]); /* Change talking animation so Bart faces fink */
+print(BART,[Text("I thought it was a theme park ride.")]);
+WaitForMessage();
+print(FINK,[Text("Well, I thought the ride was based on the movie.")]);
+WaitForMessage();
+/* "^" acts as "..." */
+printEgo([Text("Uh^\xFF\x03guys?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FG_STOP); /* Bart faces Guybrush */
+delay(60); /* Wait 1 second */
+animateCostume(BART,BART_ANIM_FF_STOP); /* Bart faces Fink */
+print(BART,[Text("Not exactly^ the movie was inspired by an earlier version of the ride.")]);
+WaitForMessage();
+print(FINK,[Text("Oh, I see.\xFF\x03So it goes, ride, movie, ride?")]);
+WaitForMessage();
+print(FINK,[Text("Yeah, pretty much.")]);
+WaitForMessage();
+printEgo([Text("^ guuuuuyyyyysss?")]);
+WaitForMessage();
+delay(120); /* Wait 2 seconds */
+print(FINK,[Text("What was that movie called?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FG_STOP);
+printEgo([Text("OKAY!\xFF\x03I STOLE THAT STORY FROM A MOVIE!\xFF\x03CAN WE MOVE ON NOW?!")]);
+WaitForMessage();
+delay(60); /* Bart nervously glances at Fink */
+animateCostume(BART,BART_ANIM_FF_STOP);
+delay(60);
+animateCostume(BART,BART_ANIM_FG_STOP);
+delay(60);
+ActorOps(BART,[TalkAnimNr(BART_ANIM_FG,BART_ANIM_FG_STOP)]); /* Bart address Guybrush again */
+print(11,[Text("You stole that story from a RIDE-")]);
+delay(50);
+printEgo([Text("AAAUUUUGGGGHH!")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FF_STOP);
+delay(60);
+print(FINK,[Text("So^\xFF\x03^any new stories that you DIDN'T steal from a movie-slash-ride?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FG_STOP);
+/* And here ends our new Scummbly... *sniff* */
+
+[0178] (D8) printEgo([Text("Well, actually, that's why I'm here on Scabb Island.^255^3I'm on a whole new adventure.")]);
+--------------------------------
+
+Our final script now looks like this:
+
+--------------------------------
+#define BART 11
+#define FINK 12
+#define BART_ANIM_FF 6
+#define BART_ANIM_FF_STOP 7
+#define BART_ANIM_FG 4
+#define BART_ANIM_FG_STOP 5
+Script# 202
+[0000] (40) cutscene([1]);
+[0005] (0C) Resource.loadCharset(4);
+[0008] (58) beginOverride();
+[000A] (18) goto 049D;
+[000D] (11) animateCostume(11,5);
+[0010] (2E) delay(60);
+[0014] (D8) printEgo([Text("So I bust into the church and say, `Now you're in for it, you bilious bag of barnacle bait!`")]);
+[0073] (AE) WaitForMessage();
+[0075] (D8) printEgo([Text("^and then LeChuck cries, `Guybrush!  Have mercy!`\xFF\x03`I can't take it anymore!`")]);
+[00C5] (AE) WaitForMessage();
+[00C7] (11) animateCostume(11,7);
+[00CA] (13) ActorOps(11,[TalkAnimNr(6,7)]);
+[00D0] (14) print(12,[Text("I think I know how he must have felt.")]);
+[00F9] (AE) WaitForMessage();
+[00FB] (14) print(11,[Text("Yeah, if I hear this story one more time, I'm gonna be crying myself.")]);
+[0144] (AE) WaitForMessage();
+[0146] (14) print(12,[Text("Don't you have any NEW stories?")]);
+[0169] (2E) delay(30);
+[016D] (13) ActorOps(11,[TalkAnimNr(4,5)]);
+[0173] (11) animateCostume(11,5);
+[0176] (AE) WaitForMessage();
+
+/* Here starts our new Scummbly! */
+/* Escape characters \xFF\x03 splits the text across two screens.*/
+printEgo([Text("Uh... well...\xFF\x03Did I tell you I travelled here by strapping two turtles to my feet?")]);
+WaitForMessage();
+print(FINK,[Text("Wasn't that in a movie?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FF_STOP); /* Bart faces Fink */
+ActorOps(BART,[TalkAnimNr(BART_ANIM_FF,BART_ANIM_FF_STOP)]); /* Change talking animation so Bart faces fink */
+print(BART,[Text("I thought it was a theme park ride.")]);
+WaitForMessage();
+print(FINK,[Text("Well, I thought the ride was based on the movie.")]);
+WaitForMessage();
+/* "^" acts as "..." */
+printEgo([Text("Uh^\xFF\x03guys?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FG_STOP); /* Bart faces Guybrush */
+delay(60); /* Wait 1 second */
+animateCostume(BART,BART_ANIM_FF_STOP); /* Bart faces Fink */
+print(BART,[Text("Not exactly^ the movie was inspired by an earlier version of the ride.")]);
+WaitForMessage();
+print(FINK,[Text("Oh, I see.\xFF\x03So it goes, ride, movie, ride?")]);
+WaitForMessage();
+print(FINK,[Text("Yeah, pretty much.")]);
+WaitForMessage();
+printEgo([Text("^ guuuuuyyyyysss?")]);
+WaitForMessage();
+delay(120); /* Wait 2 seconds */
+print(FINK,[Text("What was that movie called?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FG_STOP);
+printEgo([Text("OKAY!\xFF\x03I STOLE THAT STORY FROM A MOVIE!\xFF\x03CAN WE MOVE ON NOW?!")]);
+WaitForMessage();
+delay(60); /* Bart nervously glances at Fink */
+animateCostume(BART,BART_ANIM_FF_STOP);
+delay(60);
+animateCostume(BART,BART_ANIM_FG_STOP);
+delay(60);
+ActorOps(BART,[TalkAnimNr(BART_ANIM_FG,BART_ANIM_FG_STOP)]); /* Bart address Guybrush again */
+print(11,[Text("You stole that story from a RIDE-")]);
+delay(50);
+printEgo([Text("AAAUUUUGGGGHH!")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FF_STOP);
+delay(60);
+print(FINK,[Text("So^\xFF\x03^any new stories that you DIDN'T steal from a movie-slash-ride?")]);
+WaitForMessage();
+animateCostume(BART,BART_ANIM_FG_STOP);
+/* And here ends our new Scummbly... *sniff* */
+
+[0178] (D8) printEgo([Text("Well, actually, that's why I'm here on Scabb Island.^255^3I'm on a whole new adventure.")]);
+[01CE] (AE) WaitForMessage();
+[01D0] (14) print(11,[Text("Growing a mustache?")]);
+[01E7] (AE) WaitForMessage();
+[01E9] (D8) printEgo([Text("No.\xFF\x03Bigger than that.")]);
+[0202] (AE) WaitForMessage();
+[0204] (14) print(11,[Text("A beard?!?")]);
+[0212] (AE) WaitForMessage();
+[0214] (D8) printEgo([Text("No, I'm in search of treasure.\xFF\x03The biggest treasure of them all.")]);
+[0258] (AE) WaitForMessage();
+[025A] (11) animateCostume(11,7);
+[025D] (D8) printEgo([Text("A treasure so valuable and so well hidden, that it haunts the dreams of every pirate on the seas.")]);
+[02C1] (AE) WaitForMessage();
+[02C3] (11) animateCostume(11,5);
+[02C6] (14) print(11,[Text("You mean^")]);
+[02D3] (AE) WaitForMessage();
+[02D5] (11) animateCostume(11,7);
+[02D8] (2E) delay(60);
+[02DC] (11) animateCostume(11,5);
+[02DF] (2E) delay(30);
+[02E3] (11) animateCostume(11,4);
+[02E6] (14) print(12,[Text("Big Whoop?               \xFF\x02")]);
+[0305] (14) print(255,[Color(235),Text("                               Big Whoop?")]);
+[0334] (AE) WaitForMessage();
+[0336] (11) animateCostume(12,5);
+[0339] (11) animateCostume(11,5);
+[033C] (AE) WaitForMessage();
+[033E] (D8) printEgo([Text("None other.")]);
+[034C] (AE) WaitForMessage();
+[034E] (14) print(12,[Text("Then, why'd you come here?\xFF\x03There's no treasure on Scabb Island!")]);
+[0392] (AE) WaitForMessage();
+[0394] (D8) printEgo([Text("Well, I didn't know that before!\xFF\x03Now I'm trying to charter a ship and look someplace else.")]);
+[03F2] (AE) WaitForMessage();
+[03F4] (D8) printEgo([Text("When I return, I'll have riches galore, and a whole new story.")]);
+[0435] (AE) WaitForMessage();
+[0437] (14) print(12,[Text("Or you'll have died trying.")]);
+[0456] (AE) WaitForMessage();
+[0458] (13) ActorOps(11,[TalkAnimNr(6,7)]);
+[045E] (14) print(11,[Text("Either way, we won't have to hear about LeChuck anymore.")]);
+[049A] (AE) WaitForMessage();
+[049C] (80) breakHere();
+[049D] (58) endOverride();
+[049F] (2C) InitCharset(2);
+[04A2] (1A) Bit[164] = 1;
+[04A7] (AD) putActorInRoom(VAR_EGO,4);
+[04AB] (81) putActor(VAR_EGO,591,140);
+[04B2] (33) screenEffect(129);
+[04B6] (C0) endCutscene();
+[04B7] (2C) CursorShow();
+[04B9] (2C) UserputOn();
+[04BB] (0A) startScript(16,[2]);
+[04C1] (0A) startScript(22,[]);
+[04C4] (D2) actorFollowCamera(VAR_EGO);
+[04C7] (A0) stopObjectCode();
+END
+--------------------------------
+
+Because Scummbler treats the bits in square brackets as labels, we preserve the existing jump at [000A] that goes to [049D], even though the number of instructions between them has increased.
+
+
+Appendix A: Known variable names (for SCUMM V5)
+-----------------------------------------------
+	# /* 0 */
+	"VAR_RESULT",
+	"VAR_EGO",
+	"VAR_CAMERA_POS_X",
+	"VAR_HAVE_MSG",
+	# /* 4 */
+	"VAR_ROOM",
+	"VAR_OVERRIDE",
+	"VAR_MACHINE_SPEED",
+	"VAR_ME",
+	# /* 8 */
+	"VAR_NUM_ACTOR",
+	"VAR_CURRENT_LIGHTS",
+	"VAR_CURRENTDRIVE",
+	"VAR_TMR_1",
+	# /* 12 */
+	"VAR_TMR_2",
+	"VAR_TMR_3",
+	"VAR_MUSIC_TIMER",
+	"VAR_ACTOR_RANGE_MIN",
+	# /* 16 */
+	"VAR_ACTOR_RANGE_MAX",
+	"VAR_CAMERA_MIN_X",
+	"VAR_CAMERA_MAX_X",
+	"VAR_TIMER_NEXT",
+	# /* 20 */
+	"VAR_VIRT_MOUSE_X",
+	"VAR_VIRT_MOUSE_Y",
+	"VAR_ROOM_RESOURCE",
+	"VAR_LAST_SOUND",
+	# /* 24 */
+	"VAR_CUTSCENEEXIT_KEY",
+	"VAR_TALK_ACTOR",
+	"VAR_CAMERA_FAST_X",
+	"VAR_SCROLL_SCRIPT",
+	# /* 28 */
+	"VAR_ENTRY_SCRIPT",
+	"VAR_ENTRY_SCRIPT2",
+	"VAR_EXIT_SCRIPT",
+	"VAR_EXIT_SCRIPT2",
+	# /* 32 */
+	"VAR_VERB_SCRIPT",
+	"VAR_SENTENCE_SCRIPT",
+	"VAR_INVENTORY_SCRIPT",
+	"VAR_CUTSCENE_START_SCRIPT",
+	# /* 36 */
+	"VAR_CUTSCENE_END_SCRIPT",
+	"VAR_CHARINC",
+	"VAR_WALKTO_OBJ",
+	"VAR_DEBUGMODE",
+	# /* 40 */
+	"VAR_HEAPSPACE",
+	"VAR_TALK_ACTOR",
+	"VAR_RESTART_KEY",
+	"VAR_PAUSE_KEY",
+	# /* 44 */
+	"VAR_MOUSE_X",
+	"VAR_MOUSE_Y",
+	"VAR_TIMER",
+	"VAR_TMR_4",
+	# /* 48 */
+	"VAR_SOUNDCARD",
+	"VAR_VIDEOMODE",
+	"VAR_MAINMENU_KEY",
+	"VAR_FIXEDDISK",
+	# /* 52 */
+	"VAR_CURSORSTATE",
+	"VAR_USERPUT",
+	"VAR_V5_TALK_STRING_Y",
+	None, # NULL
+	# /* 56 */
+	"VAR_SOUNDRESULT",
+	"VAR_TALKSTOP_KEY",
+	None, # NULL
+	"VAR_FADE_DELAY",
+	# /* 60 */
+	"VAR_NOSUBTITLES",
+	None, # NULL
+	None, # NULL
+	None, # NULL
+	# /* 64 */
+	"VAR_SOUNDPARAM",
+	"VAR_SOUNDPARAM2",
+	"VAR_SOUNDPARAM3",
+	"VAR_INPUTMODE",
+	# /* 68 */
+	"VAR_MEMORY_PERFORMANCE",
+	"VAR_VIDEO_PERFORMANCE",
+	"VAR_ROOM_FLAG",
+	"VAR_GAME_LOADED",
+	# /* 72 */
+	"VAR_NEW_ROOM"
+
+Contact Information
+-------------------
+Any support queries can be directed to the jestar jokin mailing list.
+support@lists.jestarjokin.net
+	
+ifdef::backend-docbook[]
+Index
+-----
+////////////////////////////////////////////////////////////////
+The index is normally left completely empty, it's contents being
+generated automatically by the DocBook toolchain.
+////////////////////////////////////////////////////////////////
+endif::backend-docbook[]

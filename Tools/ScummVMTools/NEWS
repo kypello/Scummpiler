@@ -1,0 +1,91 @@
+For a more comprehensive changelog of the latest experimental code, see:
+        https://github.com/scummvm/scummvm-tools/commits/
+
+2.2.0 (XXXX-XX-XX)
+ - Fix number of issues with prince translation generation.
+
+2.1.0 (2019-10-11)
+ - Fix bug #10559: Add workaround to compress_scumm_sou for non-VOC speech
+   sample in monster.sou of Indiana Jones and the Fate of Atlantis.
+ - Improve endianness handling of internal FLAC encoder.
+ - Add tool to create HDFRAMES.DAT file for Blade Runner game.
+ - Major rewrite of extract_prince tool.
+ - Implement decompiler for Prince game scripts.
+ - Rework the Mohawk engine tools.
+ - Add tool to extract Hyperspace Delivery Boy! game archives.
+
+2.0.0 (2017-12-17)
+ - Fix handling of output path for the compress_touche tool.
+ - Fix handling of input path for the extract_cine tool. It was only working
+   when run from the directory that contains the game data.
+ - Fix memory corruption that could cause random errors during extraction when
+   using the extract_cine tool.
+
+1.9.0 (2016-10-27)
+ - Fix random crashes in the tool to convert Broken Sword 1 speech files.
+
+1.8.0 (2016-03-04)
+ - Add a tool to compress Tony Tough's ADP files.
+ - Add extraction and packing tools for The Prince and the Coward.
+ - Fix detection and decoding of BS1 big endian speech data in compress_sword1.
+ - Fix inputs handling for extract_gob_stk.
+
+1.7.0 (2014-07-21)
+ - Add support for CGE 2 (Sfinx) in extract_cge and pack_cge tools.
+ - Add option to run some of the tools in the GUI  on all the files with the same
+   extension (e.g. run compress_scumm_san on all *.san files).
+ - Improve support for sub-directory structure in Broken Sword 1 (e.g. when the
+   files are in the Clusters, Music and Speech sub-directories).
+ - Fix issue with output file name in compress_sword2 tool when specifying an
+   output directory (the output file name was empty with only an extension).
+ - Fix issue when trying to use compress_scumm_san more than once in the GUI
+   tool.
+
+1.6.0 (2013-05-31)
+ - Fix crash when compiling with wxWidgets 2.9.
+ - Add two tools to extract and repackage the Soltys game data.
+ - Fix bug #3093138: "compress_tucker with ScummVM CLI Tools not working".
+ - Fix bug #3280674: "ScummTools do not compress monster.sou of german fdd-version"
+ - Fix various issues on case sensitive systems when looking for input files
+   (e.g. in compress_tucker or compress_sword1 the sub-directories and input
+   files needed to be all uppercase).
+ - Improve tool detection and inputs handling for tools that require multiple
+   input files or an input directory (in both the GUI and command line).
+ - Add signature to compressed Tinsel .smp to match the one at the start of
+   the .idx file. This ensures that no sound starts at offset 0, since that is
+   interpreted as the sound missing. This fixes the first line of speech when
+   Rincewind wakes up at the beginning of Discworld 1.
+ - Fix too long help string for compression tools in the extra input file
+   selection which made the file selection impossible because the widgets
+   were outside the window.
+ - Respect given output directory in compress_tinsel.
+
+1.4.0 (2011-11-11)
+ - Updated the compress_sci tool to add support for compressing the AUDIO001.002
+   audio files of the CD versions of King's Quest 5 and Jones in the Fast Lane.
+
+1.3.0 (2011-05-28)
+ - Fix bug #3092367: "TOOLS: Improve GUI for Ogg encoding options".
+
+1.2.0 (2010-10-15)
+ - Add extract_fascination_cd tool for extracting STK archives from a mode1/2048
+   Fascination CD image.
+ - Fix bug #2984225: "Tools: configure should check if libwxgtk2.8-dev is installed".
+ - Add version information to tools.
+ - Respect $BINDIR when installing (similar to ScummVM).
+ - Fix bug #2983010: GUI Tools builds even if optioned out.
+ - Change the behavior of the CLI flags for MP3 encoding.
+ - Add option to process other files at the end of a process.
+ - Improve visual feedback after a process has finished. It should now be clear that
+   it has finished and whether it was a success or not.
+
+1.1.1 (2010-05-02)
+ First tools version to contain a NEWS file.
+
+ - Improve the way the images are loaded for the tools GUI. It increases the chances of success.
+ - Fix bug #2984217: "Tools: The media directory is not intalled".
+ - Fix bug #2905473: "GUI Tools: cannot use lame with compress_scumm_sou".
+ - Patch #2982306: "set MP3 ABR bit rate in GUI Tools".
+ - Patch #2982090: "Tools: include unistd.h for unlink".
+ - Patch #2982091: "Tools: use $(INSTALL) instead of install".
+ - Fix endian problem in create_sjisfnt.

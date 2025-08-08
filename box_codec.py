@@ -1,5 +1,6 @@
 import sys, os, json, timestamp_manager
 from binary_functions import *
+from pathlib import Path
 
 def decode_box_data(box_data, version):
     p = 0
@@ -46,7 +47,7 @@ def decode_box_data(box_data, version):
         box["flags"]["unk_1"] = flags_byte & 0x02 > 0
         box["flags"]["unk_2"] = flags_byte & 0x04 > 0
 
-        scale = le_decode(box_data[p:p+2])
+        scale = le_decode(box_data[p:p+2], 2)
         p += 2
 
         box["scale"] = {}
@@ -114,16 +115,16 @@ def decode(encoded_file_path, version, timestamp_manager):
         decoded_data["matrices"] = decode_matrix_data(encoded_matrix_data)
 
     elif version == '5':
-        if encoded_file_path.endswith("BOXD.dmp"):
+        if encoded_file_path.name.endswith("BOXD.dmp"):
             file_type = "box"
             decoded_data = decode_box_data(encoded_data[8:], version)
 
-        elif encoded_file_path.endswith("BOXM.dmp"):
+        elif encoded_file_path.name.endswith("BOXM.dmp"):
             file_type = "matrix"
             decoded_data = decode_matrix_data(encoded_data[8:])
 
 
-    decoded_file_path = encoded_file_path.replace(".dmp", ".json")
+    decoded_file_path = Path(encoded_file_path.parent, encoded_file_path.name.replace(".dmp", ".json"))
 
     decoded_file = open(decoded_file_path, 'w')
     decoded_file.write(json.dumps(decoded_data, indent=4))
@@ -141,7 +142,7 @@ def encode_box_data(boxes, version):
     if version == "4":
         box_data.append(box_count)
     elif version == "5":
-        box_data += le_encode(box_count)
+        box_data += le_encode(box_count, 2)
 
     for box in boxes:
         vertices = box["vertices"]
@@ -222,12 +223,12 @@ def encode(decoded_file_path, version, timestamp_manager):
     elif version == '5':
         header = []
 
-        if decoded_file_path.endswith("BOXD.json"):
+        if decoded_file_path.name.endswith("BOXD.json"):
             file_type = "box"
             encoded_data = encode_box_data(decoded_data, version)
             header = [0x42, 0x4f, 0x58, 0x44]
 
-        elif decoded_file_path.endswith("BOXM.json"):
+        elif decoded_file_path.name.endswith("BOXM.json"):
             file_type = "matrix"
             encoded_data = encode_matrix_data(decoded_data)
             header = [0x42, 0x4f, 0x58, 0x4d]
@@ -235,7 +236,7 @@ def encode(decoded_file_path, version, timestamp_manager):
         encoded_data_length = 8 + len(encoded_data)
         encoded_data = header + be_encode(encoded_data_length, 4) + encoded_data
     
-    encoded_file_path = decoded_file_path.replace(".json", ".dmp")
+    encoded_file_path = Path(decoded_file_path.parent, decoded_file_path.name.replace(".json", ".dmp"))
     encoded_file = open(encoded_file_path, 'wb')
     encoded_file.write(bytes(encoded_data))
     encoded_file.close()
@@ -245,10 +246,10 @@ def encode(decoded_file_path, version, timestamp_manager):
 
 if __name__ == "__main__":
     if sys.argv[1] == 'decode':
-        decode(sys.argv[2], sys.argv[3], [])
+        decode(Path(sys.argv[2]).resolve(), sys.argv[3], [])
 
     elif sys.argv[1] == 'encode':
-        encode(sys.argv[2], sys.argv[3], [])
+        encode(Path(sys.argv[2]).resolve(), sys.argv[3], [])
 
 
 

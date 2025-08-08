@@ -431,8 +431,6 @@ def decode_subimage(encoded_data, version, video_type, width, height, base_offse
     return (image, is_blank)
 
 def get_image_dimensions(image_path, version, image_type):
-    image_path = Path(image_path).resolve()
-
     header_path = ""
 
     if image_type == 'object':
@@ -467,7 +465,6 @@ def get_image_dimensions(image_path, version, image_type):
     return (width, height)
 
 def get_object_id(image_path):
-    image_path = Path(image_path).resolve()
     header_path = Path(image_path.parent, "OBHD.xml")
 
     xml_tree = xml_garbage.parse(header_path)
@@ -477,9 +474,7 @@ def get_object_id(image_path):
     return object_id
 
 def get_palette(image_path, version, image_type):
-    image_path = Path(image_path).resolve()
-
-    palette_path = ""
+    palette_path = []
 
     if image_type == 'object':
         if version == '4':
@@ -496,8 +491,6 @@ def get_palette(image_path, version, image_type):
     return palette
 
 def identify_image_type(image_path, version):
-    image_path = Path(image_path).resolve()
-
     if version == '4':
         if image_path.name.startswith("OI."):
             return 'object'
@@ -510,8 +503,6 @@ def identify_image_type(image_path, version):
             return 'room'
 
 def flatten_file_path(initial_path, levels_to_go_up):
-    initial_path = Path(initial_path).resolve()
-
     file_name = initial_path.name
 
     for i in range(levels_to_go_up):
@@ -521,8 +512,6 @@ def flatten_file_path(initial_path, levels_to_go_up):
     return flattened_path
 
 def unflatten_file_path(flattened_path):
-    flattened_path = Path(flattened_path).resolve()
-
     unflattened_path = Path(flattened_path.parent)
 
     path_parts = flattened_path.name[1:].split('+')
@@ -534,8 +523,6 @@ def unflatten_file_path(flattened_path):
 
 def decode(encoded_file_path, version, timestamp_manager, video_type, palette=[]):
     print(f"Decoding {encoded_file_path}")
-
-    encoded_file_path = Path(encoded_file_path).resolve()
 
     encoded_file = open(encoded_file_path, 'rb')
     encoded_data = encoded_file.read()
@@ -979,8 +966,6 @@ image_header_v5 = [0x53, 0x4d, 0x41, 0x50]
 zplane_header_v5 = [0x5a, 0x50, 0x30, 0x31]
 
 def encode(image_file_path, version, timestamp_manager, video_type, palette=[]):
-    image_file_path = Path(image_file_path).resolve()
-
     encoded_image = []
 
     encoded_file_path = Path(image_file_path.parent, image_file_path.name.replace("_image", "").replace("_zplane", "").replace(".png", ".dmp"))
@@ -1063,9 +1048,9 @@ def encode(image_file_path, version, timestamp_manager, video_type, palette=[]):
 
 if __name__ == "__main__":
     if sys.argv[1] == "decode":
-        decode(sys.argv[2], sys.argv[3], [], sys.argv[4])
+        decode(Path(sys.argv[2]).resolve(), sys.argv[3], [], sys.argv[4])
 
     elif sys.argv[1] == "encode":
-        encode(sys.argv[2], sys.argv[3], [], sys.argv[4])
+        encode(Path(sys.argv[2]).resolve(), sys.argv[3], [], sys.argv[4])
 
 

@@ -1,0 +1,17 @@
+<maximums>
+    <variables>1</variables>
+    <unknown_1>2</unknown_1>
+    <bit_variables>3</bit_variables>
+    <local_objects>4</local_objects>
+    <arrays>5</arrays>
+    <unknown_2>6</unknown_2>
+    <verbs>7</verbs>
+    <floating_objects>8</floating_objects>
+    <inventory_objects>9</inventory_objects>
+    <rooms>10</rooms>
+    <scripts>11</scripts>
+    <sounds>12</sounds>
+    <character_sets>13</character_sets>
+    <costumes>14</costumes>
+    <global_objects>15</global_objects>
+</maximums>
