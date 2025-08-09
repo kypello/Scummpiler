@@ -1,4 +1,4 @@
-Scummpiler by kypello, v1.0
+Scummpiler by kypello, v1.0.1
 
 To decompile a game, run the following command:
 

@@ -226,6 +226,11 @@ def decode_stripe_vga(stripe_data, height):
 
     stripe = Stripe(height, direction)
 
+    if key == 1:
+        # rare uncompressed case which shows up occasionally
+        stripe.pixels = stripe_data[1:]
+        return stripe
+
     color = stripe_data[1]
     stripe.write_color(color)
     color_shift = -1
