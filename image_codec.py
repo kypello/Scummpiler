@@ -825,13 +825,16 @@ def encode_stripe_vga(stripe, alt_algorithm, direction):
         if color == current_color:
             repeat_count += 1
         else:
-            if alt_algorithm and repeat_count > 13:
+            if alt_algorithm and repeat_count > 13 and repeat_count < 32:
                 bitstream.write_bit(1)
                 bitstream.write_bit(1)
                 bitstream.write_integer(0b100, 3)
 
-                bitstream.write_integer(repeat_count, 8)
+                bitstream.write_integer(repeat_count, 5) #seems to only be able to handle 5 bits?
 
+                bitstream.write_bit(0)
+                bitstream.write_bit(0)
+                bitstream.write_bit(0)
             else:
                 for i in range(repeat_count):
                     bitstream.write_bit(0)
@@ -859,13 +862,16 @@ def encode_stripe_vga(stripe, alt_algorithm, direction):
 
             current_color = color
 
-    if alt_algorithm and repeat_count > 13:
+    if alt_algorithm and repeat_count > 13 and repeat_count < 32:
         bitstream.write_bit(1)
         bitstream.write_bit(1)
         bitstream.write_integer(0b100, 3)
 
-        bitstream.write_integer(repeat_count, 8)
-
+        bitstream.write_integer(repeat_count, 5)
+    
+        bitstream.write_bit(0)
+        bitstream.write_bit(0)
+        bitstream.write_bit(0)
     else:
         for i in range(repeat_count):
             bitstream.write_bit(0)

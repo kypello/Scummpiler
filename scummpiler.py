@@ -234,7 +234,7 @@ class FileCrawlerBuild(FileCrawler):
                 if self.version == '4' and self.video_type == 'vga' and not self.room_palette_found:
                     self.palette_dependent_queue.append(file_path)
                 else:
-                    image_codec.encode(file_path, self.version, self.timestamp_manager, self.video_type, self.room_palette)
+                    image_codec.encode(file_path, self.version, self.timestamp_manager, 'zplane', self.room_palette)
             elif file_type == 'costume':
                 if self.video_type == 'vga' and not self.room_palette_found:
                     self.palette_dependent_queue.append(file_path)
@@ -312,7 +312,7 @@ def decompile(game_path, decomp_path, game_id, flags):
         add_room_names(decomp_path, game_id)
 
     #file_types_to_decode = ["costume", "script", "image", "scale", "box", "palette", "zplane"]
-    file_types_to_decode = ["costume"]
+    file_types_to_decode = ["box"]
 
     timestamp_manager = TimestampManager(decomp_path)
 
