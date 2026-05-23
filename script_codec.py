@@ -185,14 +185,14 @@ def get_scummbler_file_extension(script_type, version):
 def fix_bytecode_header(bytecode, script_type, version):
     if version == '4':
         if script_type == "enter":
-            bytecode = bytecode[:4] + [0x45, 0x4e] + bytecode[6:]
+            bytecode = bytecode[:4] + bytes([0x45, 0x4e]) + bytecode[6:]
         elif script_type == "exit":
-            bytecode = bytecode[:4] + [0x45, 0x58] + bytecode[6:]
+            bytecode = bytecode[:4] + bytes([0x45, 0x58]) + bytecode[6:]
     elif version == '5':
         if script_type == "enter":
-            bytecode = [0x45, 0x4e, 0x43, 0x44] + bytecode[4:]
+            bytecode = bytes([0x45, 0x4e, 0x43, 0x44]) + bytecode[4:]
         elif script_type == "exit":
-            bytecode = [0x45, 0x58, 0x43, 0x44] + bytecode[4:]
+            bytecode = bytes([0x45, 0x58, 0x43, 0x44]) + bytecode[4:]
     return bytecode
 
 def encode(script_file_path, version, timestamp_manager):

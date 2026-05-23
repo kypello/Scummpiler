@@ -1,0 +1,44 @@
+{
+    "MI1EGA" : {
+        "game_path" : "~/Games/Scumm/MI1_EGA",
+        "decomp_path" : "~/ScummProjects/MI1EGA",
+        "game_id": "MI1EGA",
+        "can_decompile": true,
+        "can_build": false
+    },
+    "MI1EGA_Sandbox" : {
+        "game_path" : "~/Games/Scumm/MI1EGA_Sandbox",
+        "decomp_path" : "~/ScummProjects/MI1EGA_Sandbox",
+        "game_id": "MI1EGA",
+        "can_decompile": true,
+        "can_build": true
+    },
+    "MI1VGA" : {
+        "game_path" : "~/Games/Scumm/MI1_VGA",
+        "decomp_path" : "~/ScummProjects/MI1VGA",
+        "game_id": "MI1VGA",
+        "can_decompile": true,
+        "can_build": false
+    },
+    "MI1VGA_Sandbox" : {
+        "game_path" : "~/Games/Scumm/MI1_VGA_Sandbox",
+        "decomp_path" : "~/ScummProjects/MI1VGA_Sandbox",
+        "game_id": "MI1VGA",
+        "can_decompile": true,
+        "can_build": true
+    },
+    "MI1CD" : {
+        "game_path" : "~/Games/Scumm/MI1_CD",
+        "decomp_path" : "~/ScummProjects/MI1CD",
+        "game_id": "MI1CD",
+        "can_decompile": true,
+        "can_build": false
+    },
+    "MI1CD_Sandbox" : {
+        "game_path" : "~/Games/Scumm/MI1CD_Sandbox",
+        "decomp_path" : "~/ScummProjects/MI1CD_Sandbox",
+        "game_id": "MI1CD",
+        "can_decompile": true,
+        "can_build": true
+    }
+}

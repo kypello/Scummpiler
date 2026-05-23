@@ -1,10 +1,11 @@
 import os, sys, re, json, time, math
 from timestamp_manager import *
 from pathlib import Path
-import script_codec, box_codec, scale_codec, palette_codec, image_codec, costume_codec
+import script_codec, box_codec, scale_codec, palette_codec, image_codec, costume_codec, font_codec
 
 python_scripts_path = Path(__file__).resolve().parent
 tools_path = Path(python_scripts_path, "Tools", "JestarJokin")
+profiles_path = Path(python_scripts_path, "profiles.json")
 
 scummpacker_py2_path = Path(tools_path, "scummpacker_py2", "src", "scummpacker.py")
 scummpacker_exe_path = Path(tools_path, "scummpacker_exe", "scummpacker.exe")
@@ -45,7 +46,7 @@ def identify_file_type_v4(file_name):
         return "scale"
     elif "PA." in file_name:
         return "palette"
-    elif "_zplane." in file_name:
+    elif "_zplane" in file_name:
         return "zplane"
     elif "BM." in file_name or "OI." in file_name or "_image." in file_name:
         return "image"
@@ -69,6 +70,8 @@ def identify_file_type_v5(file_name):
         return "zplane"
     elif "COST_" in file_name:
         return "costume"
+    elif "CHAR" in file_name:
+        return "font"
     else:
         return "other"
 
@@ -96,7 +99,11 @@ class FileCrawler:
 
     room_palette = []
     room_palette_found = False
-    palette_dependent_queue = []
+
+    room_zplane_count = 1
+    room_zplane_count_found = False
+
+    image_queue = []
 
     def __init__(self, version, video_type, file_types_to_target, timestamp_manager):
         self.version = version
@@ -122,11 +129,16 @@ class FileCrawler:
                 self.process_file(entry)
         
         if folder_type == "lfl":
-            for queued_file in self.palette_dependent_queue:
+            self.room_zplane_count_found = True
+
+            for queued_file in self.image_queue:
                 self.process_file(queued_file)
             
-            self.palette_dependent_queue = []
+            self.image_queue = []
             self.room_palette_found = False
+
+            self.room_zplane_count = 1
+            self.room_zplane_count_found = False
 
     
 class FileCrawlerDecomp(FileCrawler):
@@ -162,14 +174,16 @@ class FileCrawlerDecomp(FileCrawler):
                 box_codec.decode(file_path, self.version, self.timestamp_manager)
             elif file_type == "scale":
                 scale_codec.decode(file_path, self.version, self.timestamp_manager)
+            elif file_type == "font":
+                font_codec.decode(file_path, self.version, self.timestamp_manager)
             elif file_type == "image":
                 if self.video_type == 'vga' and not self.room_palette_found:
-                    self.palette_dependent_queue.append(file_path)
+                    self.image_queue.append(file_path)
                 else:
                     image_codec.decode(file_path, self.version, self.timestamp_manager, self.video_type, self.room_palette)
             elif file_type == "costume":
                 if self.video_type == 'vga' and not self.room_palette_found:
-                    self.palette_dependent_queue.append(file_path)
+                    self.image_queue.append(file_path)
                 else:
                     costume_codec.decode(file_path, self.version, self.timestamp_manager, self.video_type, self.room_palette)
             elif file_type == "zplane":
@@ -225,19 +239,29 @@ class FileCrawlerBuild(FileCrawler):
                 box_codec.encode(file_path, self.version, self.timestamp_manager)
             elif file_type == "scale":
                 scale_codec.encode(file_path, self.version, self.timestamp_manager)
+            elif file_type == "font":
+                font_codec.encode(file_path, self.version, self.timestamp_manager)
             elif file_type == "image":
                 if self.video_type == 'vga' and not self.room_palette_found:
-                    self.palette_dependent_queue.append(file_path)
+                    self.image_queue.append(file_path)
+                elif self.version == '4' and not self.room_zplane_count_found:
+                    self.image_queue.append(file_path)
                 else:
-                    image_codec.encode(file_path, self.version, self.timestamp_manager, self.video_type, self.room_palette)
+                    image_codec.encode(file_path, self.version, self.timestamp_manager, self.video_type, self.room_palette, self.room_zplane_count)
             elif file_type == 'zplane':
                 if self.version == '4' and self.video_type == 'vga' and not self.room_palette_found:
-                    self.palette_dependent_queue.append(file_path)
+                    self.image_queue.append(file_path)
+                elif self.version == '4' and not self.room_zplane_count_found:
+                    zplane_number = int(file_path.name[-1:])
+                    if zplane_number > self.room_zplane_count:
+                        self.room_zplane_count = zplane_number
+
+                    self.image_queue.append(file_path)
                 else:
-                    image_codec.encode(file_path, self.version, self.timestamp_manager, 'zplane', self.room_palette)
+                    image_codec.encode(file_path, self.version, self.timestamp_manager, 'zplane', self.room_palette, self.room_zplane_count)
             elif file_type == 'costume':
                 if self.video_type == 'vga' and not self.room_palette_found:
-                    self.palette_dependent_queue.append(file_path)
+                    self.image_queue.append(file_path)
                 else:
                     costume_codec.encode(file_path, self.version, self.timestamp_manager, self.video_type, self.room_palette)
 
@@ -311,8 +335,7 @@ def decompile(game_path, decomp_path, game_id, flags):
 
         add_room_names(decomp_path, game_id)
 
-    #file_types_to_decode = ["costume", "script", "image", "scale", "box", "palette", "zplane"]
-    file_types_to_decode = ["box"]
+    file_types_to_decode = ["costume", "script", "image", "scale", "box", "palette", "zplane", "font"]
 
     timestamp_manager = TimestampManager(decomp_path)
 
@@ -338,10 +361,11 @@ def build(decomp_path, game_path, game_id, flags):
 
     start_time = time.time()
 
-    decomp_path = Path(decomp_path).resolve()
-    game_path = Path(game_path).resolve()
+    decomp_path = Path(decomp_path).expanduser().resolve()
+
+    game_path = Path(game_path).expanduser().resolve()
     
-    file_types_to_encode = ["costume", "script", "image", "scale", "box", "palette", "zplane"]
+    file_types_to_encode = ["costume", "script", "image", "scale", "box", "palette", "zplane", "font"]
 
     timestamp_manager = TimestampManager(decomp_path)
     timestamp_manager.check_for_existing_timestamps()
@@ -365,12 +389,45 @@ def build(decomp_path, game_path, game_id, flags):
     
     print(f"{game_id} successfully built in {math.floor(total_time)} seconds")
 
+def get_profile(profile_name):
+    profiles_file = open(profiles_path, 'r')
+    profiles = json.loads(profiles_file.read())
+    profiles_file.close()
+
+    if profile_name in profiles:
+        profile = profiles[profile_name]
+        return profile
+    else:
+        print("Profile " + profile_name + " not found")
+        exit()
 
 if __name__ == "__main__":
+    profile = ('', '', '')
+    if sys.argv[2] == "profile":
+        profile = get_profile(sys.argv[3])
+    elif sys.argv[2] == "direct":
+        profile = {
+            'game_id' : sys.argv[5],
+            'can_build' : True,
+            'can_decompile' : True
+        }
+        if sys.argv[1] == 'decompile':
+            profile['game_path'] = sys.argv[3]
+            profile['decomp_path'] = sys.argv[4]
+        elif sys.argv[1]:
+            profile['game_path'] = sys.argv[4]
+            profile['decomp_path'] = sys.argv[3]
+
     if sys.argv[1] == "decompile":
-        decompile(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5:])
+        if profile['can_decompile']:
+            decompile(profile["game_path"], profile["decomp_path"], profile["game_id"], [])
+        else:
+            print("Not allowed")
 
     elif sys.argv[1] == "build":
-        build(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5:])
+        if profile['can_build']:
+            build(profile["decomp_path"], profile["game_path"], profile["game_id"], [])
+        else:
+            print("Not allowed")
 
 

@@ -909,7 +909,7 @@ def decode(encoded_costume_path, version, timestamp_manager, video_type, room_pa
 
     if video_type == 'ega':
         room_palette = image_codec.ega_palette
-    elif video_type == 'vga' and room_palette == []:
+    elif video_type == 'vga' and len(room_palette) == 0:
         room_palette = get_room_palette(encoded_costume_path, version)
 
     costume = Costume()

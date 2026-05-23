@@ -100,6 +100,34 @@ class Bitstream:
         self.byte = data[0]
     
     def read_bit(self):
+        return 0
+    
+    def read_integer(self, integer_size):
+        value = 0
+
+        for i in range(integer_size):
+            bit = self.read_bit()
+            value += bit << i
+        
+        return value
+
+    
+    def within_bounds(self):
+        return self.byte_index < len(self.data)
+    
+    def write_bit(self, bit):
+        return
+    
+    def write_integer(self, value, integer_size):
+        for i in range(integer_size):
+            bit = (value >> i) & 1
+            self.write_bit(bit)
+
+class BitstreamLE(Bitstream):
+    def __init__(self, data):
+        super().__init__(data)
+
+    def read_bit(self):
         if self.byte_index >= len(self.data):
             return 0
         
@@ -117,19 +145,6 @@ class Bitstream:
         
         return bit
     
-    def read_integer(self, integer_size):
-        value = 0
-
-        for i in range(integer_size):
-            bit = self.read_bit()
-            value += bit << i
-        
-        return value
-
-    
-    def within_bounds(self):
-        return self.byte_index < len(self.data)
-    
     def write_bit(self, bit):
         self.byte = self.byte | (bit << self.bit_index)
         self.data[self.byte_index] = self.byte
@@ -142,13 +157,42 @@ class Bitstream:
 
             self.byte = 0
             self.data.append(0)
+
+class BitstreamBE(Bitstream):
+    def __init__(self, data):
+        super().__init__(data)
+        self.bit_index = 7
+
+    def read_bit(self):
+        if self.byte_index >= len(self.data):
+            return 0
         
+        bit = (self.byte >> self.bit_index) & 1
+
+        self.bit_index -= 1
+
+        if self.bit_index == -1:
+            self.bit_index = 7
+
+            self.byte_index += 1
+
+            if self.within_bounds():
+                self.byte = self.data[self.byte_index]
         
+        return bit
     
-    def write_integer(self, value, integer_size):
-        for i in range(integer_size):
-            bit = (value >> i) & 1
-            self.write_bit(bit)
+    def write_bit(self, bit):
+        self.byte = self.byte | (bit << self.bit_index)
+        self.data[self.byte_index] = self.byte
+
+        self.bit_index -= 1
+        if self.bit_index == -1:
+            self.bit_index = 7
+
+            self.byte_index += 1
+
+            self.byte = 0
+            self.data.append(0)
 
 
 COPY_PREVIOUS_COLUMN = 2
@@ -238,7 +282,7 @@ def decode_stripe_vga(stripe_data, height):
 
     state = S_WRITE_COLOR
 
-    bitstream = Bitstream(stripe_data[2:])
+    bitstream = BitstreamLE(stripe_data[2:])
 
     while bitstream.within_bounds():
         if state == S_WRITE_COLOR:
@@ -449,6 +493,7 @@ def get_image_dimensions(image_path, version, image_type):
         elif version == '5':
             header_path = Path(image_path.parents[2], "RMHD.xml")
     
+
     xml_tree = xml_garbage.parse(header_path)
     xml_root = xml_tree.getroot()
 
@@ -517,6 +562,9 @@ def flatten_file_path(initial_path, levels_to_go_up):
     return flattened_path
 
 def unflatten_file_path(flattened_path):
+    if not "+" in flattened_path.name:
+        return flattened_path
+
     unflattened_path = Path(flattened_path.parent)
 
     path_parts = flattened_path.name[1:].split('+')
@@ -566,20 +614,23 @@ def decode(encoded_file_path, version, timestamp_manager, video_type, palette=[]
         if timestamp_manager != []:
             timestamp_manager.add_timestamp(image_file_path)
         
-        if len(encoded_data) <= image_end + 4:
-            return
-        
-        (zplane, is_blank) = decode_subimage(encoded_data[image_end+2:], version, 'zplane', width, height, 2)
-        
-        if is_blank:
-            return
-        
-        zplane_file_path = Path(image_file_path.parent, image_file_path.name.replace("_image", "_zplane"))
+        zplane_count = 0
 
-        zplane.save(zplane_file_path)
+        while len(encoded_data) > image_end + 4:
+            zplane_count += 1
 
-        if timestamp_manager != []:
-            timestamp_manager.add_timestamp(zplane_file_path)
+            image_start = image_end
+            image_end = le_decode(encoded_data[image_start:image_start + 2], 2) + image_start
+
+            (zplane, is_blank) = decode_subimage(encoded_data[image_start+2:image_end], version, 'zplane', width, height, 2)
+
+            if is_blank:
+                continue
+            
+            zplane_file_path = Path(image_file_path.parent, image_file_path.name.replace("_image", "_zplane" + str(zplane_count)))
+            zplane.save(zplane_file_path)
+            if timestamp_manager != []:
+                timestamp_manager.add_timestamp(zplane_file_path)
 
     elif version == '5':
         (image, is_blank) = decode_subimage(encoded_data[header_size:], version, video_type, width, height, header_size, palette)
@@ -811,7 +862,7 @@ def encode_stripe_vga(stripe, alt_algorithm, direction):
     if alt_algorithm:
         key += 40
 
-    bitstream = Bitstream([0])
+    bitstream = BitstreamLE([0])
 
     bitstream.write_integer(key, 8)
     bitstream.write_integer(current_color, 8)
@@ -962,13 +1013,18 @@ def generate_blank_image(width, height):
     return image
 
 def find_matching_files_v4(file_path):
-    if "_image" in file_path.name:
-        zplane_path = Path(file_path.parent, file_path.name.replace("_image", "_zplane"))
-        return (file_path, zplane_path)
+    image_path = file_path
+
+    if "_zplane1" in file_path.name:
+        image_path = Path(file_path.parent, file_path.name.replace("_zplane1", "_image"))
+    elif "_zplane2" in file_path.name:
+        image_path = Path(file_path.parent, file_path.name.replace("_zplane2", "_image"))
     
-    elif "_zplane" in file_path.name:
-        image_path = Path(file_path.parent, file_path.name.replace("_zplane", "_image"))
-        return (image_path, file_path)
+    zplane_path_1 = Path(image_path.parent, image_path.name.replace("_image", "_zplane1"))
+    zplane_path_2 = Path(image_path.parent, image_path.name.replace("_image", "_zplane2"))
+    #assuming never more than 2 zplanes
+
+    return (image_path, [zplane_path_1, zplane_path_2])
 
 
 room_image_header_v4 = [0x42, 0x4d]
@@ -976,10 +1032,10 @@ object_image_header_v4 = [0x4f, 0x49]
 image_header_v5 = [0x53, 0x4d, 0x41, 0x50]
 zplane_header_v5 = [0x5a, 0x50, 0x30, 0x31]
 
-def encode(image_file_path, version, timestamp_manager, video_type, palette=[]):
+def encode(image_file_path, version, timestamp_manager, video_type, palette=[], zplane_count=1):
     encoded_image = []
 
-    encoded_file_path = Path(image_file_path.parent, image_file_path.name.replace("_image", "").replace("_zplane", "").replace(".png", ".dmp"))
+    encoded_file_path = Path(image_file_path.parent, image_file_path.name.replace("_image", "").replace("_zplane1", "").replace("_zplane2", "").replace(".png", ".dmp"))
     encoded_file_path = unflatten_file_path(encoded_file_path)
 
     image_type = identify_image_type(encoded_file_path, version)
@@ -988,24 +1044,29 @@ def encode(image_file_path, version, timestamp_manager, video_type, palette=[]):
         palette = get_palette(encoded_file_path, version, image_type)
 
     if version == '4':
-        (image_file_path, zplane_file_path) = find_matching_files_v4(image_file_path)
+        (image_file_path, zplane_file_paths) = find_matching_files_v4(image_file_path)
 
-        if zplane_file_path.exists():
-            print(f"Encoding {image_file_path} and {zplane_file_path}")
-        else:
-            print(f"Encoding {image_file_path}")
+        for i in range(len(zplane_file_paths)):
+            if zplane_file_paths[i].exists() and (i + 1) > zplane_count:
+                zplane_count = i + 1
+
+        print(f"Encoding {image_file_path} and any associated zplanes")
         
         image = Image.open(image_file_path)
         word_size = word_size_table[video_type]
         encoded_smap = encode_subimage(image, version, video_type, word_size, palette)
 
-        zplane = []
-        if zplane_file_path.exists():
-            zplane = Image.open(zplane_file_path)
-        else:
-            zplane = generate_blank_image(image.width, image.height)
-        
-        encoded_zplane = encode_subimage(zplane, version, 'zplane', 2)
+        encoded_zplanes = []
+
+        for i in range(zplane_count):
+            zplane = []
+            if zplane_file_paths[i].exists():
+                zplane = Image.open(zplane_file_paths[i])
+            else:
+                zplane = generate_blank_image(image.width, image.height)
+            
+            encoded_zplane = encode_subimage(zplane, version, 'zplane', 2)
+            encoded_zplanes.append(encoded_zplane)
 
         header = []
         if image_type == 'object':
@@ -1014,17 +1075,25 @@ def encode(image_file_path, version, timestamp_manager, video_type, palette=[]):
         elif image_type == 'room':
             header = room_image_header_v4
         
+
         smap_length = word_size + len(encoded_smap)
-        zplane_length = 2 + len(encoded_zplane)
+        encoded_image = le_encode(smap_length, word_size) + encoded_smap
 
-        encoded_image_length = 4 + len(header) + smap_length + zplane_length
+        for i in range(zplane_count):
+            zplane_length = 2 + len(encoded_zplanes[i])
+            encoded_image += le_encode(zplane_length, 2) + encoded_zplanes[i]
 
-        encoded_image = le_encode(encoded_image_length, 4) + header + le_encode(smap_length, word_size) + encoded_smap + le_encode(zplane_length, 2) + encoded_zplane
+
+
+        encoded_image_length = 4 + len(header) + len(encoded_image)
+        encoded_image = le_encode(encoded_image_length, 4) + header + encoded_image
 
         if timestamp_manager != []:
             timestamp_manager.add_timestamp(image_file_path)
-            if zplane_file_path.exists():
-                timestamp_manager.add_timestamp(zplane_file_path)
+
+            for zplane_file_path in zplane_file_paths:
+                if zplane_file_path.exists():
+                    timestamp_manager.add_timestamp(zplane_file_path)
 
     elif version == '5':
         print(f"Encoding {image_file_path}")
